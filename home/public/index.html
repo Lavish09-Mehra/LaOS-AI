@@ -1,9 +1,43 @@
-<!-- ============================================================
-     LavOS 2026 — home/public/index.html
-     The Vision Home page: chat window, status pill, permission
-     prompt container, global overlay for quick use anywhere.
-     Minimal dark terminal vibe. Styling in styles.css,
-     behavior in app.js. Keep it one page.
-     Todo(phase 10): build the skeleton — chat box, message list,
-     status bar, overlay root, permission dialog area.
-     ============================================================ -->
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vision — LavOS 2026</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">LavOS <span class="version">2026</span></div>
+      <div class="status-pill" id="statusPill">IDLE</div>
+    </header>
+
+    <!-- Chat area -->
+    <div class="chat-area" id="chatArea">
+      <div class="welcome">
+        <div class="welcome-icon">V</div>
+        <p>Hi, I'm <strong>Vision</strong>. Ask me anything.</p>
+        <p class="hint">Type below or use voice commands</p>
+      </div>
+    </div>
+
+    <!-- Permission dialog (hidden by default) -->
+    <div class="permission-bar hidden" id="permissionBar">
+      <span class="perm-text" id="permText">Permission requested</span>
+      <button class="perm-btn allow" id="permAllow">Allow</button>
+      <button class="perm-btn deny" id="permDeny">Deny</button>
+    </div>
+
+    <!-- Input area -->
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Say something to Vision..." autocomplete="off" />
+      <button id="sendBtn" class="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
