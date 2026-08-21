@@ -20,6 +20,10 @@ storage/reports/
 storage/logs/
 storage/config.json
 
+# Test screenshots (large binaries)
+data/screenshots/
+media/*.png
+
 # OS/build artifacts
 kernel/*.o
 kernel/*.iso

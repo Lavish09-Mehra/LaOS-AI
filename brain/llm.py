@@ -25,57 +25,8 @@ SYSTEM_PROMPT = (
     "Never mention being an AI language model — you ARE Vision."
 )
 
-# --- rules engine (instant, zero LLM) ----------------------------------
-_RULES: list[tuple[re.Pattern, str]] = [
-    (re.compile(r"\b(what('?s| is) )?(my |the )?(ram|memory|mem)\b", re.I),
-     "RAM: {ram}"),
-    (re.compile(r"\b(what('?s| is) )?(my |the )?(battery|power|charge)\b", re.I),
-     "Battery: {battery}"),
-    (re.compile(r"\b(what('?s| is) )?(my |the )?time\b", re.I),
-     "It's {time}."),
-    (re.compile(r"\b(open|launch|start|run)\s+(notepad|editor|text\s*edit)", re.I),
-     '{"tool":"open_app","args":{"app":"notepad"}}'),
-    (re.compile(r"\b(open|launch|start|run)\s+(calc|calculator)", re.I),
-     '{"tool":"open_app","args":{"app":"calculator"}}'),
-    (re.compile(r"\b(open|launch|start|run)\s+(chrome|browser|firefox|edge)", re.I),
-     '{"tool":"open_app","args":{"app":"browser"}}'),
-    (re.compile(r"\b(add|create|make)\s+(a )?(todo|task|reminder|note)[\s:]+(.+)", re.I),
-     '{"tool":"add_todo","args":{"text":"{4}"}}'),
-    (re.compile(r"\b(list|show|see|get|read)\s+(my |the )?(todos?|tasks?|reminders?)", re.I),
-     '{"tool":"list_todos","args":{}}'),
-    (re.compile(r"\b(complete|done|finish|mark)\s+(todo |task )?#?(\d+)", re.I),
-     '{"tool":"complete_todo","args":{"id":3}}'),
-    (re.compile(r"\b(delete|remove|drop)\s+(todo |task )?#?(\d+)", re.I),
-     '{"tool":"delete_todo","args":{"id":3}}'),
-    (re.compile(r"\b(what('?s| is) )?(the )?(uptime|up time|how long)\b", re.I),
-     "Uptime: {uptime}"),
-    (re.compile(r"\b(search|look up|google|find)\s+(.+)", re.I),
-     '{"tool":"web_search","args":{"query":"{2}"}}'),
-    (re.compile(r"\b(hi|hello|hey|howdy|good\s*(morning|afternoon|evening))\b", re.I),
-     "Hello! I'm Vision, your LavOS assistant. How can I help?"),
-]
-
-
-def _rules_match(query: str, ctx: Optional[dict] = None) -> Optional[str]:
-    """Try to match the query against instant rules. Returns None if no match."""
-    ctx = ctx or {}
-    for pattern, reply_tpl in _RULES:
-        m = pattern.search(query)
-        if m:
-            result = reply_tpl
-            result = result.replace("{ram}", ctx.get("ram", "unknown"))
-            result = result.replace("{battery}", ctx.get("battery", "unknown"))
-            result = result.replace("{time}", ctx.get("time", "unknown"))
-            result = result.replace("{uptime}", ctx.get("uptime", "unknown"))
-            for i in range(1, 10):
-                try:
-                    val = m.group(i)
-                    if val:
-                        result = result.replace("{" + str(i) + "}", val)
-                except IndexError:
-                    break
-            return result
-    return None
+# --- rules engine (imported from rules.py — never-die fallback) ----------
+from brain.rules import rules_match as _rules_match
 
 
 # --- Ollama local chat -------------------------------------------------

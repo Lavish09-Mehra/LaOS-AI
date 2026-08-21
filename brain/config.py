@@ -36,7 +36,7 @@ STREAM_DEFAULT = True                                    # stream replies to UI 
 
 # --- cloud providers (ONLINE ONLY — used for web tasks) ---------------
 NIM_URL = "https://integrate.api.nvidia.com/v1"
-NIM_MODEL = ""                                          # pick on build.nvidia.com
+NIM_MODEL = "meta/llama-3.2-11b-vision-instruct"        # free NIM VL model
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/"
 GEMINI_MODEL = "gemini-2.0-flash"
 

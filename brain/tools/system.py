@@ -137,10 +137,72 @@ def get_system_info(query: str = "all", **_) -> dict:
     return {"ok": True, "result": text, "data": info}
 
 
-def read_screen(**_) -> dict:
-    """Take a screenshot and return info (placeholder for VL model)."""
-    return {
-        "ok": False,
-        "result": "Screen reading requires qwen3-vl:4b. Use the desktop button to capture.",
-        "data": {},
-    }
+def capture_screen(query: str = "full", **_) -> dict:
+    """Take a screenshot. query: full (default), region."""
+    try:
+        from PIL import ImageGrab
+        import time
+        ss_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "screenshots")
+        os.makedirs(ss_dir, exist_ok=True)
+        ts = time.strftime("%Y%m%d_%H%M%S")
+        path = os.path.join(ss_dir, f"screen_{ts}.png")
+        img = ImageGrab.grab()
+        # downscale to max 512px wide for much faster VL processing
+        w, h = img.size
+        if w > 512:
+            ratio = 512 / w
+            img = img.resize((512, int(h * ratio)), ImageGrab.Image.LANCZOS)
+        img.save(path, optimize=True)
+        return {"ok": True, "result": f"Screenshot saved: {path}", "data": {"path": path, "size": img.size}}
+    except Exception as e:
+        return {"ok": False, "result": f"Screenshot failed: {e}", "data": {}}
+
+
+def read_screen(query: str = "full", **_) -> dict:
+    """Take a screenshot and read its contents. Tries cloud VL first (fast), then local."""
+    ss = capture_screen(query=query)
+    if not ss["ok"]:
+        return ss
+    path = ss["data"]["path"]
+
+    # --- Try cloud VL first (NIM or Gemini) — ~2-4s ---
+    try:
+        from brain.config import NIM_API_KEY, NIM_URL, NIM_MODEL
+        import base64, httpx
+        with open(path, "rb") as f:
+            img_b64 = base64.b64encode(f.read()).decode()
+        headers = {"Authorization": f"Bearer {NIM_API_KEY}", "Content-Type": "application/json"}
+        payload = {
+            "model": NIM_MODEL,
+            "messages": [{"role": "user", "content": [
+                {"type": "text", "text": "Describe what you see on this screenshot in detail. Read all text visible."},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}}
+            ]}],
+            "max_tokens": 300,
+            "temperature": 0.3,
+        }
+        r = httpx.post(f"{NIM_URL}/chat/completions", json=payload, headers=headers, timeout=30)
+        r.raise_for_status()
+        text = r.json()["choices"][0]["message"]["content"]
+        if text and len(text.strip()) > 5:
+            return {"ok": True, "result": text.strip(), "data": {"path": path, "engine": "nim"}}
+    except Exception:
+        pass  # fall through to local
+
+    # --- Local VL fallback (qwen3-vl:4b on CPU — slower) ---
+    try:
+        from brain.config import LOCAL_ENGINE, OLLAMA_HOST
+        payload = {
+            "model": LOCAL_ENGINE,
+            "messages": [{"role": "user", "content": "Describe what you see on this screenshot in detail. Read any text visible.", "images": [img_b64]}],
+            "stream": False,
+            "think": False,
+            "options": {"num_predict": 300, "temperature": 0.3},
+        }
+        r = httpx.post(f"{OLLAMA_HOST}/api/chat", json=payload, timeout=180)
+        r.raise_for_status()
+        msg = r.json()["message"]
+        text = msg.get("content", "") or ""
+        return {"ok": True, "result": text, "data": {"path": path, "engine": "local"}}
+    except Exception as e:
+        return {"ok": False, "result": f"Screen reading failed: {e}", "data": {"path": path}}
