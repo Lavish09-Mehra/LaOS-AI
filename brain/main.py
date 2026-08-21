@@ -6,6 +6,7 @@
 
 import json
 import sys
+import uuid
 from pathlib import Path
 
 from brain.config import APP_NAME, APP_VERSION, get_ai_name, get_wake_word
@@ -40,10 +41,13 @@ def run_cli():
         print()
 
 
+# --- HTTP server with session persistence -----------------------------
+_sessions: dict[str, dict] = {}
+
+
 def run_http(port: int = 8080):
     """Run Vision as an HTTP server for the Node UI."""
     from http.server import HTTPServer, BaseHTTPRequestHandler
-    import threading
 
     class VisionHandler(BaseHTTPRequestHandler):
         def do_POST(self):
@@ -52,9 +56,17 @@ def run_http(port: int = 8080):
                 body = self.rfile.read(content_length)
                 data = json.loads(body)
                 user_text = data.get("text", "")
-                context = data.get("context", {})
+                session_id = data.get("session_id")
 
-                result = run_agent(user_text, context)
+                # Create or retrieve session
+                if not session_id or session_id not in _sessions:
+                    session_id = str(uuid.uuid4())
+                    _sessions[session_id] = {}
+
+                ctx = _sessions[session_id]
+                result = run_agent(user_text, ctx)
+                result["session_id"] = session_id
+
                 response = json.dumps(result).encode("utf-8")
 
                 self.send_response(200)
@@ -78,7 +90,7 @@ def run_http(port: int = 8080):
 
     server = HTTPServer(("127.0.0.1", port), VisionHandler)
     print(f"{APP_NAME} {APP_VERSION} — HTTP server on http://127.0.0.1:{port}")
-    print("  POST /chat with {text, context} to chat")
+    print("  POST /chat with {text, session_id} to chat")
     server.serve_forever()
 
 

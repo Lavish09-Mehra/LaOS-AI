@@ -4,11 +4,9 @@
 # Returns top snippets + source links.
 # ============================================================
 
-import json
 import urllib.request
 import urllib.parse
 import re
-from typing import Optional
 
 
 def web_search(query: str = "", max_results: int = 3, **_) -> dict:
@@ -16,8 +14,13 @@ def web_search(query: str = "", max_results: int = 3, **_) -> dict:
     if not query.strip():
         return {"ok": False, "result": "Empty search query", "data": {}}
 
+    # Strip trailing punctuation that breaks search
+    clean_query = re.sub(r'[!?.,;:]+$', '', query).strip()
+    if not clean_query:
+        clean_query = query
+
     try:
-        url = "https://html.duckduckgo.com/html/?" + urllib.parse.urlencode({"q": query})
+        url = "https://html.duckduckgo.com/html/?" + urllib.parse.urlencode({"q": clean_query})
         req = urllib.request.Request(
             url,
             headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) LavOS/2026"},
@@ -26,8 +29,6 @@ def web_search(query: str = "", max_results: int = 3, **_) -> dict:
         html = resp.read().decode("utf-8", errors="replace")
 
         # Parse results from HTML
-        results = []
-        # Find result blocks
         snippets = re.findall(
             r'class="result__snippet"[^>]*>(.*?)</a>',
             html, re.DOTALL
@@ -41,10 +42,18 @@ def web_search(query: str = "", max_results: int = 3, **_) -> dict:
             html, re.DOTALL
         )
 
-        for i in range(min(max_results, len(snippets))):
+        # Deduplicate by URL
+        seen_urls = set()
+        results = []
+        for i in range(min(max_results * 2, len(snippets))):
+            if len(results) >= max_results:
+                break
             title = re.sub(r'<[^>]+>', '', titles[i]).strip() if i < len(titles) else ""
             snippet = re.sub(r'<[^>]+>', '', snippets[i]).strip() if i < len(snippets) else ""
             url_text = re.sub(r'<[^>]+>', '', urls[i]).strip() if i < len(urls) else ""
+            if url_text in seen_urls:
+                continue
+            seen_urls.add(url_text)
             results.append({
                 "title": title,
                 "snippet": snippet,
@@ -52,7 +61,7 @@ def web_search(query: str = "", max_results: int = 3, **_) -> dict:
             })
 
         if not results:
-            return {"ok": True, "result": f"No results for: {query}", "data": {"results": []}}
+            return {"ok": True, "result": f"No results for: {clean_query}", "data": {"results": []}}
 
         text = "\n".join(
             f"{i+1}. {r['title']}\n   {r['snippet']}"

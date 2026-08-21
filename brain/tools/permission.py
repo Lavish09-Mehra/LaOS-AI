@@ -11,9 +11,16 @@ from brain.config import ASK_BEFORE_SENSITIVE, ACTION_TIMEOUT_S
 
 # Permission state — set by the UI via Socket.io
 _pending: dict = {}
-_result: dict = {}
 _lock = threading.Lock()
-_event = threading.Event()
+_events: dict[str, threading.Event] = {}
+
+
+def _get_or_create_event(aid: str) -> threading.Event:
+    """Get or create a per-request event for a given action ID."""
+    with _lock:
+        if aid not in _events:
+            _events[aid] = threading.Event()
+        return _events[aid]
 
 
 def ask_permission(description: str, action_id: Optional[str] = None, **_) -> dict:
@@ -25,16 +32,18 @@ def ask_permission(description: str, action_id: Optional[str] = None, **_) -> di
         return {"ok": True, "result": "Auto-approved (permission gate disabled)", "data": {}}
 
     aid = action_id or f"perm_{id(description)}"
-    _event.clear()
+    event = _get_or_create_event(aid)
+    event.clear()
 
     with _lock:
         _pending[aid] = {"description": description, "status": "pending"}
 
-    # In demo, we auto-approve after timeout
-    granted = _event.wait(timeout=ACTION_TIMEOUT_S)
+    # Block until user responds or timeout
+    granted = event.wait(timeout=ACTION_TIMEOUT_S)
 
     with _lock:
         entry = _pending.pop(aid, {})
+        _events.pop(aid, None)
         if not granted:
             return {"ok": False, "result": "Permission denied (timeout)", "data": {"id": aid}}
 
@@ -49,7 +58,9 @@ def grant_permission(action_id: str) -> None:
     with _lock:
         if action_id in _pending:
             _pending[action_id]["status"] = "granted"
-    _event.set()
+        event = _events.get(action_id)
+    if event:
+        event.set()
 
 
 def deny_permission(action_id: str) -> None:
@@ -57,7 +68,9 @@ def deny_permission(action_id: str) -> None:
     with _lock:
         if action_id in _pending:
             _pending[action_id]["status"] = "denied"
-    _event.set()
+        event = _events.get(action_id)
+    if event:
+        event.set()
 
 
 def get_pending() -> dict:
