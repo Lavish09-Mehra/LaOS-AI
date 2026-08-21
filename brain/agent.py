@@ -6,6 +6,7 @@
 # ============================================================
 
 import json
+import re
 from typing import Optional
 
 from brain.config import MAX_TOKENS_CHAT, get_ai_name
@@ -85,10 +86,16 @@ def run_agent(
                 text = tool_result["result"]
             else:
                 # Feed result back to LLM for narration
+                ollama_tool_call = [{
+                    "function": {
+                        "name": tool_call["name"],
+                        "arguments": tool_call.get("args", {}),
+                    }
+                }]
                 narration_msgs = [
                     {"role": "system", "content": sys_prompt},
                     {"role": "user", "content": user_text},
-                    {"role": "assistant", "content": "", "tool_calls": [tool_call]},
+                    {"role": "assistant", "content": "", "tool_calls": ollama_tool_call},
                     {"role": "tool", "content": json.dumps(tool_result)},
                 ]
                 narration = _ollama_chat_narrate(narration_msgs)
@@ -96,9 +103,10 @@ def run_agent(
         else:
             text = f"Sorry, I couldn't do that: {tool_result['result']}"
 
-    # Update conversation history
+    # Update conversation history (strip thinking tags to keep history clean)
+    clean_reply = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
     ctx["history"].append({"role": "user", "content": user_text})
-    ctx["history"].append({"role": "assistant", "content": text})
+    ctx["history"].append({"role": "assistant", "content": clean_reply})
     # Keep history short
     ctx["history"] = ctx["history"][-12:]
 
