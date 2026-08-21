@@ -1,0 +1,33 @@
+# --- Never commit secrets, local data, or build junk ---
+
+# Environment & secrets
+.env
+.env.local
+*.env
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local-first user data (todos, reports, logs)
+storage/todos/
+storage/reports/
+storage/logs/
+storage/config.json
+
+# OS/build artifacts
+kernel/*.o
+kernel/*.iso
+kernel/build/
+iso/*.iso
+
+# Editor / OS junk
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

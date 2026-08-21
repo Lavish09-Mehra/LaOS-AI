@@ -1,0 +1,15 @@
+{
+  // ============================================================
+  // LavOS 2026 — vscode-extension/package.json
+  // Manifest for "Ask Vision" VS Code extension.
+  // Todo(phase 11): name, version, contributes.commands
+  // with "Ask Vision", main = extension.js, engines.vscode.
+  // ============================================================
+  "name": "ask-vision",
+  "version": "0.1.0",
+  "description": "Ask Vision (the LavOS 2026 agent) about your code",
+  "main": "./extension.js",
+  "engines": {
+    "vscode": "^1.0.0"
+  }
+}
