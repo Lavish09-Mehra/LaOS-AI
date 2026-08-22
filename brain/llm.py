@@ -14,7 +14,6 @@ from brain.config import (
     OLLAMA_HOST, LOCAL_ENGINE, THINK_DEFAULT, MAX_TOKENS_CHAT,
     NIM_URL, NIM_MODEL, NIM_API_KEY,
     GEMINI_URL, GEMINI_MODEL, GEMINI_API_KEY,
-    VL_MAX_TOKENS, VL_MAX_WIDTH,
 )
 
 # --- system prompt (Vision persona) ------------------------------------
@@ -138,18 +137,6 @@ def _gemini_chat(messages: list[dict], max_tokens: int = MAX_TOKENS_CHAT) -> dic
         return {"text": text, "engine": "gemini"}
     except Exception as e:
         return {"text": "", "engine": "gemini", "error": str(e)}
-
-
-# --- Cloud VL (vision-language) -----------------------------------------
-def _cloud_vl(messages: list[dict], images: list[str], engine: str = "nim") -> dict:
-    """Send vision query to cloud VL. NIM first, Gemini spare."""
-    # For now, cloud VL is text-only placeholder (actual VL endpoints
-    # vary; implement when NIM VL model key is set)
-    if engine == "nim" and NIM_API_KEY:
-        return _nim_chat(messages, max_tokens=VL_MAX_TOKENS)
-    if GEMINI_API_KEY:
-        return _gemini_chat(messages, max_tokens=VL_MAX_TOKENS)
-    return {"text": "", "engine": "cloud_vl", "error": "no cloud key"}
 
 
 # --- main chat entry point ----------------------------------------------
