@@ -1,10 +1,12 @@
 # ============================================================
 # LavOS 2026 — brain/llm.py  (LLM Gateway)
-# Cloud-first: OpenCode Zen → Groq → Cerebras → NIM → Gemini.
+# Cloud-first: Zen → Groq → Cerebras → NIM → Gemini.
 # Rules engine for instant replies. Never-die chain.
+# Built-in rate limiting to protect free tiers.
 # ============================================================
 
 import json
+import time
 import urllib.request
 import urllib.error
 from typing import Optional
@@ -20,19 +22,66 @@ from brain.config import (
 
 from brain.rules import rules_match as _rules_match
 
+# --- rate limiter (protects free tiers) ----------------------------
+_rate_limits: dict[str, list[float]] = {}
+
+# Free tier limits (conservative — well under actual caps)
+FREE_LIMITS = {
+    "zen": {"rpm": 10, "rpd": 200},     # MiMo free tier
+    "groq": {"rpm": 20, "rpd": 500},    # Groq free tier
+    "cerebras": {"rpm": 4, "rpd": 100}, # Cerebras free tier (5 RPM)
+    "nim": {"rpm": 10, "rpd": 200},     # NIM free tier
+    "gemini": {"rpm": 10, "rpd": 200},  # Gemini free tier
+}
+
+
+def _check_rate_limit(provider: str) -> bool:
+    """Check if provider is within free tier limits. Returns True if OK."""
+    limits = FREE_LIMITS.get(provider, {"rpm": 30, "rpd": 1000})
+    now = time.time()
+
+    if provider not in _rate_limits:
+        _rate_limits[provider] = []
+
+    # Clean old entries (older than 24 hours)
+    _rate_limits[provider] = [t for t in _rate_limits[provider] if now - t < 86400]
+
+    # Check daily limit
+    if len(_rate_limits[provider]) >= limits["rpd"]:
+        return False
+
+    # Check per-minute limit
+    recent = [t for t in _rate_limits[provider] if now - t < 60]
+    if len(recent) >= limits["rpm"]:
+        return False
+
+    return True
+
+
+def _record_request(provider: str) -> None:
+    """Record a successful request for rate limiting."""
+    if provider not in _rate_limits:
+        _rate_limits[provider] = []
+    _rate_limits[provider].append(time.time())
+
+
 # --- cloud chat (OpenAI-compatible) --------------------------------
 def _cloud_chat(
     url: str,
     model: str,
     api_key: str,
     messages: list[dict],
+    provider: str = "cloud",
     max_tokens: int = MAX_TOKENS_CHAT,
     vision: bool = False,
     images: Optional[list[str]] = None,
 ) -> dict:
-    """Generic OpenAI-compatible chat. Returns {"text": ..., "engine": ...}."""
+    """Generic OpenAI-compatible chat with rate limiting."""
     if not api_key:
-        return {"text": "", "engine": "cloud", "error": "no api key"}
+        return {"text": "", "engine": provider, "error": "no api key"}
+
+    if not _check_rate_limit(provider):
+        return {"text": "", "engine": provider, "error": "rate limited"}
 
     payload: dict = {
         "model": model,
@@ -42,12 +91,11 @@ def _cloud_chat(
         "stream": False,
     }
 
-    # Add images for vision models
     if vision and images:
+        import base64
         user_msg = messages[-1] if messages else {"role": "user", "content": ""}
         content = []
         for img_path in images:
-            import base64
             try:
                 with open(img_path, "rb") as f:
                     img_b64 = base64.b64encode(f.read()).decode()
@@ -66,9 +114,12 @@ def _cloud_chat(
         resp = urllib.request.urlopen(req, timeout=60)
         body = json.loads(resp.read().decode("utf-8"))
         text = body["choices"][0]["message"]["content"].strip()
+        _record_request(provider)
         return {"text": text, "engine": model}
+    except urllib.error.HTTPError as e:
+        return {"text": "", "engine": provider, "error": f"HTTP {e.code}"}
     except Exception as e:
-        return {"text": "", "engine": model, "error": str(e)}
+        return {"text": "", "engine": provider, "error": str(e)}
 
 
 # --- main chat entry point ------------------------------------------
@@ -80,8 +131,8 @@ def chat(
     system_prompt: Optional[str] = None,
 ) -> dict:
     """
-    Full chat pipeline: rules → Zen → Groq → Cerebras → NIM → Gemini.
-    Returns {"text": str, "tool_call": dict|None, "engine": str}.
+    Full chat pipeline with rate limiting.
+    Rules → Zen → Groq → Cerebras → NIM → Gemini → Offline.
     """
     ctx = context or {}
 
@@ -97,19 +148,16 @@ def chat(
     messages.extend(history[-8:])
     messages.append({"role": "user", "content": user_text})
 
-    # 3. Try providers in order
+    # 3. Try providers in order (with rate limiting)
     providers = [
-        ("Zen", ZEN_URL, ZEN_VISION_MODEL if images else ZEN_TEXT_MODEL, ZEN_API_KEY, bool(images)),
-        ("Groq", GROQ_URL, GROQ_MODEL, GROQ_API_KEY, False),
-        ("Cerebras", CEREBRAS_URL, CEREBRAS_MODEL, CEREBRAS_API_KEY, False),
-        ("NIM", NIM_URL, NIM_MODEL, NIM_API_KEY, bool(images)),
-        ("Gemini", None, None, GEMINI_API_KEY, False),
+        ("zen", ZEN_URL, ZEN_VISION_MODEL if images else ZEN_TEXT_MODEL, ZEN_API_KEY, bool(images)),
+        ("groq", GROQ_URL, GROQ_MODEL, GROQ_API_KEY, False),
+        ("cerebras", CEREBRAS_URL, CEREBRAS_MODEL, CEREBRAS_API_KEY, False),
+        ("nim", NIM_URL, NIM_MODEL, NIM_API_KEY, bool(images)),
     ]
 
     for name, url, model, key, vision in providers:
-        if name == "Gemini":
-            continue  # handled separately below
-        result = _cloud_chat(url, model, key, messages, vision=vision, images=images)
+        result = _cloud_chat(url, model, key, messages, provider=name, vision=vision, images=images)
         if result.get("text"):
             return result
 
@@ -131,6 +179,9 @@ def _gemini_chat(messages: list[dict]) -> dict:
     if not GEMINI_API_KEY:
         return {"text": "", "engine": "gemini", "error": "no key"}
 
+    if not _check_rate_limit("gemini"):
+        return {"text": "", "engine": "gemini", "error": "rate limited"}
+
     contents = []
     for m in messages:
         role = "user" if m["role"] in ("user", "system") else "model"
@@ -147,17 +198,31 @@ def _gemini_chat(messages: list[dict]) -> dict:
         resp = urllib.request.urlopen(req, timeout=30)
         body = json.loads(resp.read().decode("utf-8"))
         text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
+        _record_request("gemini")
         return {"text": text, "engine": "gemini"}
     except Exception as e:
         return {"text": "", "engine": "gemini", "error": str(e)}
 
 
+# --- rate limit status (for debugging) -----------------------------
+def get_rate_status() -> dict:
+    """Return current rate limit status for all providers."""
+    now = time.time()
+    status = {}
+    for provider, limits in FREE_LIMITS.items():
+        times = _rate_limits.get(provider, [])
+        recent_min = len([t for t in times if now - t < 60])
+        recent_day = len([t for t in times if now - t < 86400])
+        status[provider] = {
+            "rpm": f"{recent_min}/{limits['rpm']}",
+            "rpd": f"{recent_day}/{limits['rpd']}",
+        }
+    return status
+
+
 # --- CLI test -------------------------------------------------------
 if __name__ == "__main__":
-    print("LavOS LLM Gateway — cloud-first mode")
-    print(f"  primary: Zen ({ZEN_TEXT_MODEL})")
-    print(f"  speed  : Groq ({GROQ_MODEL})")
-    print(f"  bulk   : Cerebras ({CEREBRAS_MODEL})")
+    print("LavOS LLM Gateway — cloud-first mode with rate limiting")
     print()
 
     tests = ["hello", "what is 2+2", "open notepad"]
@@ -166,3 +231,7 @@ if __name__ == "__main__":
         r = chat(q)
         print(f"  [{r['engine']}] {r['text'][:120]}")
         print()
+
+    print("Rate limit status:")
+    for provider, status in get_rate_status().items():
+        print(f"  {provider}: RPM {status['rpm']}, RPD {status['rpd']}")
