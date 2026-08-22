@@ -1,43 +1,303 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vision — LavOS 2026</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LavOS</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app">
-    <!-- Header -->
-    <header class="header">
-      <div class="logo">LavOS <span class="version">2026</span></div>
-      <div class="status-pill" id="statusPill">IDLE</div>
-    </header>
 
-    <!-- Chat area -->
-    <div class="chat-area" id="chatArea">
-      <div class="welcome">
-        <div class="welcome-icon">V</div>
-        <p>Hi, I'm <strong>Vision</strong>. Ask me anything.</p>
-        <p class="hint">Type below or use voice commands</p>
-      </div>
-    </div>
+  <div class="desktop"></div>
 
-    <!-- Permission dialog (hidden by default) -->
-    <div class="permission-bar hidden" id="permissionBar">
-      <span class="perm-text" id="permText">Permission requested</span>
-      <button class="perm-btn allow" id="permAllow">Allow</button>
-      <button class="perm-btn deny" id="permDeny">Deny</button>
-    </div>
-
-    <!-- Input area -->
-    <div class="input-area">
-      <input type="text" id="userInput" placeholder="Say something to Vision..." autocomplete="off" />
-      <button id="sendBtn" class="send-btn">Send</button>
+  <!-- TERMINAL -->
+  <div class="window" id="win-terminal">
+    <div class="win-head"><span class="title">terminal</span><span class="close" onclick="closeApp('win-terminal')">&#10005;</span></div>
+    <div class="term-body" id="termBody">
+      <div class="term-line">lavos: boot</div>
+      <div class="term-line">engine: connecting...</div>
+      <div class="term-line">status: ready</div>
+      <div class="term-line"><span class="prompt">$</span> <span class="cursor"></span></div>
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="app.js"></script>
+  <!-- BROWSER -->
+  <div class="window" id="win-coccoc">
+    <div class="win-head"><span class="title">browser</span><span class="close" onclick="closeApp('win-coccoc')">&#10005;</span></div>
+    <div class="win-body" style="display:flex;align-items:center;justify-content:center;color:var(--text-dim);">browser placeholder</div>
+  </div>
+
+  <!-- FILES -->
+  <div class="window" id="win-files">
+    <div class="win-head"><span class="title">files</span><span class="close" onclick="closeApp('win-files')">&#10005;</span></div>
+    <div class="win-body">
+      <div style="color:var(--text-dim); font-size:12px;">home / projects / system / logs</div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="window" id="win-settings">
+    <div class="win-head"><span class="title">settings</span><span class="close" onclick="closeApp('win-settings')">&#10005;</span></div>
+    <div class="win-body">
+
+      <div class="settings-section">General</div>
+      <div class="settings-row"><span>OS Version</span><span>LavOS 2026</span></div>
+      <div class="settings-row"><span>Default Browser</span><span>Coc Coc</span></div>
+      <div class="settings-row"><span>Shell</span><span>bash</span></div>
+      <div class="settings-row">
+        <span>AI Name</span>
+        <input class="settings-input" id="cfgAiName" placeholder="e.g. My AI" style="width:120px;">
+      </div>
+      <div class="settings-row">
+        <span>Wake Word</span>
+        <input class="settings-input" id="cfgWakeWord" placeholder="e.g. hey computer" style="width:120px;">
+      </div>
+
+      <div class="settings-section">Voice</div>
+      <div class="settings-row">
+        <span>Voice Output</span>
+        <label class="toggle"><input type="checkbox" id="cfgVoiceOn"><span class="slider"></span></label>
+      </div>
+      <div class="settings-row">
+        <span>Voice Engine</span>
+        <select class="settings-select" id="cfgVoiceEngine">
+          <option value="browser">Browser TTS</option>
+          <option value="pyttsx3">pyttsx3</option>
+          <option value="off">Off</option>
+        </select>
+      </div>
+
+      <div class="settings-section">Screen</div>
+      <div class="settings-row">
+        <span>Screen Capture</span>
+        <label class="toggle"><input type="checkbox" id="cfgStreamOn"><span class="slider"></span></label>
+      </div>
+      <div class="settings-row">
+        <span>Capture FPS</span>
+        <select class="settings-select" id="cfgStreamFps">
+          <option value="1">1 fps</option>
+          <option value="2">2 fps</option>
+          <option value="5">5 fps</option>
+        </select>
+      </div>
+
+      <div class="settings-section">Cloud Providers</div>
+      <div class="settings-row">
+        <span>Groq API Key</span>
+        <input class="settings-input" id="cfgGroqKey" type="password" placeholder="gsk_...">
+      </div>
+      <div class="settings-row">
+        <span>Groq Model</span>
+        <input class="settings-input" id="cfgGroqModel" placeholder="openai/gpt-oss-20b" style="width:140px;">
+      </div>
+      <div class="settings-row">
+        <span>NIM API Key</span>
+        <input class="settings-input" id="cfgNimKey" type="password" placeholder="nvapi-...">
+      </div>
+      <div class="settings-row">
+        <span>NIM Model</span>
+        <input class="settings-input" id="cfgNimModel" placeholder="meta/llama-3.2-11b-vision-instruct" style="width:140px;">
+      </div>
+      <div class="settings-row">
+        <span>Zen API Key</span>
+        <input class="settings-input" id="cfgZenKey" type="password" placeholder="optional">
+      </div>
+
+      <div class="settings-section">Ollama (Local)</div>
+      <div class="settings-row">
+        <span>Ollama Enabled</span>
+        <label class="toggle"><input type="checkbox" id="cfgOllamaOn"><span class="slider"></span></label>
+      </div>
+      <div class="settings-row">
+        <span>Ollama URL</span>
+        <input class="settings-input" id="cfgOllamaUrl" placeholder="http://127.0.0.1:11434" style="width:160px;">
+      </div>
+      <div class="settings-row">
+        <span>Chat Model</span>
+        <input class="settings-input" id="cfgOllamaChat" placeholder="qwen3:4b" style="width:120px;">
+      </div>
+      <div class="settings-row">
+        <span>Vision Model</span>
+        <input class="settings-input" id="cfgOllamaVision" placeholder="qwen3-vl:4b" style="width:120px;">
+      </div>
+
+      <div class="settings-section">Permissions</div>
+      <div class="settings-row">
+        <span>Ask Before Actions</span>
+        <select class="settings-select" id="cfgPermissions">
+          <option value="always">Always Ask</option>
+          <option value="never">Never Ask</option>
+        </select>
+      </div>
+
+      <div style="padding:12px 0;">
+        <button class="settings-save-btn" id="saveSettingsBtn">Save Settings</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCREEN STREAM -->
+  <div class="window" id="win-stream">
+    <div class="win-head"><span class="title">screen stream</span><span class="close" onclick="closeApp('win-stream')">&#10005;</span></div>
+    <div class="win-body">
+      <div class="stream-preview" id="streamPreview">stream inactive</div>
+      <div class="stream-controls">
+        <button class="btn-sm" id="streamStartBtn">Start</button>
+        <button class="btn-sm" id="streamStopBtn" disabled>Stop</button>
+        <button class="btn-sm" id="streamAnalyzeBtn" disabled>Analyze</button>
+      </div>
+      <div class="stream-status" id="streamStatus">stopped</div>
+    </div>
+  </div>
+
+  <!-- TODOS -->
+  <div class="window" id="win-todos">
+    <div class="win-head"><span class="title">todos</span><span class="close" onclick="closeApp('win-todos')">&#10005;</span></div>
+    <div class="win-body">
+      <div class="todo-list" id="todoList"></div>
+      <div class="todo-add">
+        <input type="text" id="todoInput" placeholder="add todo...">
+        <button class="btn-sm" id="todoAddBtn">+</button>
+      </div>
+      <div style="margin-top:8px;">
+        <button class="btn-sm" id="todoReportBtn">Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIT LOG -->
+  <div class="window" id="win-audit">
+    <div class="win-head"><span class="title">audit log</span><span class="close" onclick="closeApp('win-audit')">&#10005;</span></div>
+    <div class="win-body">
+      <div class="audit-list" id="auditList">no entries yet</div>
+      <div style="margin-top:8px;">
+        <button class="btn-sm" id="auditRefreshBtn">Refresh</button>
+        <button class="btn-sm" id="auditClearBtn">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TASKBAR ============ -->
+  <div class="taskbar">
+    <div class="tb-left"></div>
+
+    <div class="tb-center">
+      <button class="lavos-search" id="lavosSearch" aria-label="LavOS Search" aria-expanded="false" onclick="toggleSearch()">
+        <span class="laptop"><span class="screen"></span><span class="base"></span></span>
+      </button>
+
+      <button class="terminal-btn" aria-label="Terminal" onclick="openApp('win-terminal')">
+        <svg class="terminal-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <rect class="terminal-window" x="3" y="4" width="26" height="24" rx="3"/>
+          <path class="terminal-window" d="M3 10h26"/>
+          <circle cx="7" cy="7" r="0.8" fill="currentColor"/>
+          <circle cx="10" cy="7" r="0.8" fill="currentColor" opacity="0.7"/>
+          <circle cx="13" cy="7" r="0.8" fill="currentColor" opacity="0.5"/>
+          <path class="terminal-arrow" d="M8 15l4 3-4 3"/>
+          <path class="terminal-cursor" d="M15 21h5"/>
+        </svg>
+      </button>
+
+      <button class="tb-icon-btn" aria-label="Files" onclick="openApp('win-files')">&#9638;</button>
+      <button class="tb-icon-btn" aria-label="Browser" onclick="openApp('win-coccoc')">&#9680;</button>
+      <button class="tb-icon-btn" aria-label="Settings" onclick="openApp('win-settings')">&#9881;</button>
+      <button class="tb-icon-btn" aria-label="Todos" onclick="openApp('win-todos')" style="position:relative;">
+        &#10003;
+        <span class="badge" id="todoBadge"></span>
+      </button>
+    </div>
+
+    <div class="tb-right">
+      <div class="lavos-ai-wrap" style="position:relative;">
+        <button class="ai-toggle-btn" id="aiToggleBtn" aria-label="AI Panel" onclick="toggleAiPanel()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="4" y="5" width="16" height="11" rx="2"/>
+            <path d="M2.5 19h19"/>
+            <path d="M8 19l1-3h6l1 3"/>
+          </svg>
+        </button>
+        <span class="stream-dot" id="taskbarStreamDot"></span>
+      </div>
+
+      <div class="tb-time-wrap">
+        <div class="tb-time" id="tbTime" onclick="toggleCal()">
+          <span class="t-time" id="clockTime">--:--</span>
+          <span class="t-date" id="clockDate">--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI SLIDING PANEL -->
+  <div class="lavos-panel" id="lavosPanel">
+    <div class="panel-header">
+      <div class="panel-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="4" y="5" width="16" height="11" rx="2"/>
+          <path d="M2.5 19h19"/>
+          <path d="M8 19l1-3h6l1 3"/>
+        </svg>
+      </div>
+      <div class="panel-title" id="panelTitle">LavOS</div>
+      <button class="panel-close" onclick="toggleAiPanel()">&#10005;</button>
+    </div>
+    <div class="panel-content">
+      <div class="content-inner">
+        <div class="panel-chat" id="panelChat"></div>
+
+        <div class="items">
+          <div class="item" onclick="openApp('win-terminal'); toggleAiPanel();">
+            <div class="item-icon">&gt;</div>
+            <div class="item-text"><div class="item-name">Terminal</div><div class="item-desc">Open terminal</div></div>
+          </div>
+          <div class="item" onclick="openApp('win-files'); toggleAiPanel();">
+            <div class="item-icon">&#9678;</div>
+            <div class="item-text"><div class="item-name">Files</div><div class="item-desc">Browse files</div></div>
+          </div>
+          <div class="item" onclick="openApp('win-stream'); toggleAiPanel();">
+            <div class="item-icon">&#9673;</div>
+            <div class="item-text"><div class="item-name">Screen Stream</div><div class="item-desc">Capture screen</div></div>
+          </div>
+          <div class="item" onclick="openApp('win-todos'); toggleAiPanel();">
+            <div class="item-icon">&#10003;</div>
+            <div class="item-text"><div class="item-name">Todos</div><div class="item-desc">Manage tasks</div></div>
+          </div>
+          <div class="item" onclick="openApp('win-audit'); toggleAiPanel();">
+            <div class="item-icon">&#9783;</div>
+            <div class="item-text"><div class="item-name">Audit Log</div><div class="item-desc">Recent actions</div></div>
+          </div>
+          <div class="item" onclick="openApp('win-settings'); toggleAiPanel();">
+            <div class="item-icon">&#9881;</div>
+            <div class="item-text"><div class="item-name">Settings</div><div class="item-desc">Configure system</div></div>
+          </div>
+        </div>
+
+        <div class="panel-input">
+          <input type="text" id="panelInput" placeholder="type something...">
+          <button class="mic-btn" id="micBtn" onclick="toggleMic()">&#127908;</button>
+        </div>
+
+        <div class="panel-footer">
+          <span><span class="dot" id="footEngine"></span>engine</span>
+          <span><span class="dot" id="footVoice"></span>voice</span>
+          <span><span class="dot" id="footStream"></span>stream</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR / TIME PANEL -->
+  <div class="cal-panel" id="calPanel">
+    <div class="cal-head">
+      <div class="cal-time" id="calTime">--:--</div>
+      <div class="cal-date" id="calDate">--</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-notif">no new notifications</div>
+  </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

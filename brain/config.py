@@ -82,10 +82,10 @@ def _read_user_config() -> dict:
         return {}
 
 def get_ai_name() -> str:
-    return _read_user_config().get("ai_name", "Vision")
+    return _read_user_config().get("ai_name", "AI")
 
 def get_wake_word() -> str:
-    return _read_user_config().get("wake_word", "hey Vision")
+    return _read_user_config().get("wake_word", "hey computer")
 
 
 if __name__ == "__main__":

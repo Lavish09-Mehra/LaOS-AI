@@ -163,7 +163,8 @@ def chat(
         return {"text": rules_reply, "tool_call": None, "engine": "rules"}
 
     # 2. Build messages
-    sys = system_prompt or "You are Vision, the AI assistant inside LavOS 2026. Be concise."
+    from brain.config import get_ai_name
+    sys = system_prompt or f"You are {get_ai_name()}, the AI assistant inside LavOS 2026. Be concise."
     messages = [{"role": "system", "content": sys}]
     history = ctx.get("history", [])
     messages.extend(history[-8:])
