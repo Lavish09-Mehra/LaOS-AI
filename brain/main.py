@@ -50,6 +50,22 @@ def run_http(port: int = 8080):
     from http.server import HTTPServer, BaseHTTPRequestHandler
 
     class VisionHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/health":
+                data = {"status": "ok", "version": APP_VERSION, "name": get_ai_name()}
+            elif self.path == "/status":
+                data = {"sessions": len(_sessions), "engine": "local", "uptime": "running"}
+            else:
+                self.send_response(404)
+                self.end_headers()
+                return
+            body = json.dumps(data).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(body)
+
         def do_POST(self):
             if self.path == "/chat":
                 content_length = int(self.headers.get("Content-Length", 0))
