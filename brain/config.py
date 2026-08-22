@@ -1,13 +1,7 @@
 # ============================================================
 # LavOS 2026 — brain/config.py  (THE settings file)
-# ONE place for everything tunable: engine, paths, provider keys.
-# No external deps: secrets come from a .env file (home-made
-# loader), AI name + wake word come from storage/config.json so
-# users can rename Vision without touching code.
-#
-# Hackathon engine: local "qwen3-vl:4b" for computer/chat tasks,
-# NVIDIA NIM (free cloud) for web tasks — Gemini spare. Change
-# MODEL_LOCAL to 8b+ for production in ONE line.
+# ONE place for everything: cloud providers, keys, paths.
+# Cloud-first architecture — no local models needed.
 # ============================================================
 
 import json
@@ -15,7 +9,7 @@ import os
 from pathlib import Path
 
 # --- paths ----------------------------------------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent        # project root
+BASE_DIR = Path(__file__).resolve().parent.parent
 STORAGE_DIR = BASE_DIR / "storage"
 TODOS_DIR = STORAGE_DIR / "todos"
 REPORTS_DIR = STORAGE_DIR / "reports"
@@ -26,31 +20,39 @@ ENV_FILE = BASE_DIR / ".env"
 # --- app identity ---------------------------------------------------
 APP_NAME = "LavOS"
 APP_VERSION = "2026"
-LOCAL_ENGINE = "qwen3-vl:4b"                               # ONE-LINE SWITCH for prod (8b+)
+MAX_TOKENS_CHAT = 150
 
-# --- local Ollama ----------------------------------------------------
-OLLAMA_HOST = "http://127.0.0.1:11434"                  # localhost only, never exposed
-THINK_DEFAULT = False                                    # qwen3: false for fast replies; true only for deep reasoning
-MAX_TOKENS_CHAT = 150                                    # keep answers short & punchy
-STREAM_DEFAULT = True                                    # stream replies to UI for perceived speed
+# --- cloud providers ------------------------------------------------
+# Primary: OpenCode Zen (free MiMo + other models)
+ZEN_URL = "https://opencode.ai/zen/v1/chat/completions"
+ZEN_VISION_MODEL = "mimo-v2.5-free"
+ZEN_TEXT_MODEL = "big-pickle"
 
-# --- cloud providers (ONLINE ONLY — used for web tasks) ---------------
-NIM_URL = "https://integrate.api.nvidia.com/v1"
-NIM_MODEL = "meta/llama-3.2-11b-vision-instruct"        # free NIM VL model
+# Speed tier: Groq (fastest time-to-first-token)
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_MODEL = "llama-3.3-70b-versatile"
+
+# Throughput tier: Cerebras (highest tok/s)
+CEREBRAS_URL = "https://api.cerebras.ai/v1/chat/completions"
+CEREBRAS_MODEL = "llama-3.3-70b"
+
+# Fallback: NVIDIA NIM
+NIM_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+NIM_MODEL = "meta/llama-3.2-11b-vision-instruct"
+
+# Fallback: Gemini
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/"
 GEMINI_MODEL = "gemini-2.0-flash"
 
-# --- vision (screen reading) -------------------------------------------
-VL_ONLINE_PRIMARY = "nim"                                # when online: "nim" or "gemini"
-VL_LOCAL_MODEL = LOCAL_ENGINE                            # local fallback (qwen3-vl:4b)
-VL_MAX_TOKENS = 200                                      # vision replies can be slightly longer
-VL_MAX_WIDTH = 768                                        # downscale screenshots to this width
+# --- vision ---------------------------------------------------------
+VL_PRIMARY_MODEL = ZEN_VISION_MODEL  # MiMo-V2.5 for vision tasks
+VL_MAX_WIDTH = 768
 
-# --- permissions ------------------------------------------------------
-ASK_BEFORE_SENSITIVE = True      # every read of screen/files/web asks first
-ACTION_TIMEOUT_S = 60            # auto-deny if user doesn't answer
+# --- permissions ----------------------------------------------------
+ASK_BEFORE_SENSITIVE = True
+ACTION_TIMEOUT_S = 60
 
-# --- tiny .env loader (secrets never commit; no pip dep needed) --------
+# --- .env loader ----------------------------------------------------
 def _load_env() -> None:
     if not ENV_FILE.exists():
         return
@@ -64,10 +66,13 @@ def _load_env() -> None:
 
 _load_env()
 
+ZEN_API_KEY = os.environ.get("OPENCODE_API_KEY", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+CEREBRAS_API_KEY = os.environ.get("CEREBRAS_API_KEY", "")
 NIM_API_KEY = os.environ.get("NVIDIA_NIM_API_KEY", "")
 GEMINI_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 
-# --- user preferences (rename-able AI, from storage/config.json) --------
+# --- user preferences -----------------------------------------------
 def _read_user_config() -> dict:
     try:
         with open(CONFIG_FILE, encoding="utf-8") as f:
@@ -76,11 +81,9 @@ def _read_user_config() -> dict:
         return {}
 
 def get_ai_name() -> str:
-    """The agent's name. Users rename Vision via storage/config.json."""
     return _read_user_config().get("ai_name", "Vision")
 
 def get_wake_word() -> str:
-    """Wake phrase, follows the ai_name. Default: 'hey Vision'."""
     return _read_user_config().get("wake_word", "hey Vision")
 
 
@@ -88,8 +91,9 @@ if __name__ == "__main__":
     print(f"{APP_NAME} {APP_VERSION} — settings")
     print(f"  ai_name      : {get_ai_name()}")
     print(f"  wake_word    : {get_wake_word()}")
-    print(f"  local engine : {LOCAL_ENGINE}")
-    print(f"  ollama       : {OLLAMA_HOST}")
+    print(f"  Zen key set  : {bool(ZEN_API_KEY)}")
+    print(f"  Groq key set : {bool(GROQ_API_KEY)}")
+    print(f"  Cerebras key : {bool(CEREBRAS_API_KEY)}")
     print(f"  NIM key set  : {bool(NIM_API_KEY)}")
     print(f"  gemini set   : {bool(GEMINI_API_KEY)}")
     print(f"  storage      : {STORAGE_DIR}")

@@ -4,6 +4,7 @@
 # Every sensitive action goes through permission.py first.
 # ============================================================
 
+import json
 import os
 import subprocess
 import ctypes
@@ -171,7 +172,7 @@ def _delete_screenshot(path: str) -> None:
 
 
 def read_screen(query: str = "full", **_) -> dict:
-    """Take a screenshot, read it with VL, then DELETE it. Zero privacy leak."""
+    """Take a screenshot, read it with cloud VL, then DELETE it. Zero privacy leak."""
     ss = capture_screen(query=query)
     if not ss["ok"]:
         return ss
@@ -185,11 +186,36 @@ def read_screen(query: str = "full", **_) -> dict:
         _delete_screenshot(path)
         return {"ok": False, "result": f"Failed to read screenshot: {e}", "data": {}}
 
-    # --- Try cloud VL first (NIM or Gemini) — ~2-4s ---
+    # --- Cloud VL (MiMo-V2.5 via OpenCode Zen) ---
+    try:
+        from brain.config import ZEN_API_KEY, ZEN_URL, ZEN_VISION_MODEL
+        import urllib.request
+        payload = {
+            "model": ZEN_VISION_MODEL,
+            "messages": [{"role": "user", "content": [
+                {"type": "text", "text": "Describe what you see on this screenshot in detail. Read all text visible."},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}}
+            ]}],
+            "max_tokens": 300,
+            "temperature": 0.3,
+            "stream": False,
+        }
+        data = json.dumps(payload).encode("utf-8")
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZEN_API_KEY}"}
+        req = urllib.request.Request(ZEN_URL, data=data, headers=headers, method="POST")
+        resp = urllib.request.urlopen(req, timeout=30)
+        body = json.loads(resp.read().decode("utf-8"))
+        text = body["choices"][0]["message"]["content"]
+        if text and len(text.strip()) > 5:
+            _delete_screenshot(path)
+            return {"ok": True, "result": text.strip(), "data": {"engine": "zen-vision"}}
+    except Exception:
+        pass
+
+    # --- Fallback: NIM VL ---
     try:
         from brain.config import NIM_API_KEY, NIM_URL, NIM_MODEL
-        import httpx
-        headers = {"Authorization": f"Bearer {NIM_API_KEY}", "Content-Type": "application/json"}
+        import urllib.request
         payload = {
             "model": NIM_MODEL,
             "messages": [{"role": "user", "content": [
@@ -199,32 +225,17 @@ def read_screen(query: str = "full", **_) -> dict:
             "max_tokens": 300,
             "temperature": 0.3,
         }
-        r = httpx.post(f"{NIM_URL}/chat/completions", json=payload, headers=headers, timeout=30)
-        r.raise_for_status()
-        text = r.json()["choices"][0]["message"]["content"]
+        data = json.dumps(payload).encode("utf-8")
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {NIM_API_KEY}"}
+        req = urllib.request.Request(f"{NIM_URL}/chat/completions", data=data, headers=headers, method="POST")
+        resp = urllib.request.urlopen(req, timeout=30)
+        body = json.loads(resp.read().decode("utf-8"))
+        text = body["choices"][0]["message"]["content"]
         if text and len(text.strip()) > 5:
             _delete_screenshot(path)
             return {"ok": True, "result": text.strip(), "data": {"engine": "nim"}}
     except Exception:
-        pass  # fall through to local
+        pass
 
-    # --- Local VL fallback (qwen3-vl:4b on CPU — slower) ---
-    try:
-        from brain.config import LOCAL_ENGINE, OLLAMA_HOST
-        import httpx
-        payload = {
-            "model": LOCAL_ENGINE,
-            "messages": [{"role": "user", "content": "Describe what you see on this screenshot in detail. Read all text visible.", "images": [img_b64]}],
-            "stream": False,
-            "think": False,
-            "options": {"num_predict": 300, "temperature": 0.3},
-        }
-        r = httpx.post(f"{OLLAMA_HOST}/api/chat", json=payload, timeout=180)
-        r.raise_for_status()
-        msg = r.json()["message"]
-        text = msg.get("content", "") or ""
-        _delete_screenshot(path)
-        return {"ok": True, "result": text, "data": {"engine": "local"}}
-    except Exception as e:
-        _delete_screenshot(path)
-        return {"ok": False, "result": f"Screen reading failed: {e}", "data": {}}
+    _delete_screenshot(path)
+    return {"ok": False, "result": "Screen reading failed — no vision API available", "data": {}}

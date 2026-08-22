@@ -74,8 +74,14 @@ def rules_match(query: str, ctx: Optional[dict] = None) -> Optional[str]:
     Try to match the query against instant rules.
     Returns reply string if matched, None if no match.
     ctx provides live system info (ram, battery, time, uptime).
+    Only matches SHORT simple commands (<=6 words for action queries).
+    Complex multi-step tasks go to the LLM agent.
     """
     ctx = ctx or {}
+    # Skip rules for long/complex queries — let LLM agent handle them
+    words = query.strip().split()
+    if len(words) > 8:
+        return None
     for pattern, reply_tpl in _RULES:
         m = pattern.search(query)
         if m:

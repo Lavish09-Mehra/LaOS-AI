@@ -1,116 +1,133 @@
 # ============================================================
 # LavOS 2026 — brain/llm.py  (LLM Gateway)
-# Speed-first chat: rules.py → local qwen3-vl:4b → cloud NIM/Gemini.
-# Every path tested; never-die chain ensures a reply always.
+# Cloud-first: OpenCode Zen → Groq → Cerebras → NIM → Gemini.
+# Rules engine for instant replies. Never-die chain.
 # ============================================================
 
 import json
-import re
 import urllib.request
 import urllib.error
-from typing import Optional, Generator
+from typing import Optional
 
 from brain.config import (
-    OLLAMA_HOST, LOCAL_ENGINE, THINK_DEFAULT, MAX_TOKENS_CHAT,
+    ZEN_URL, ZEN_VISION_MODEL, ZEN_TEXT_MODEL, ZEN_API_KEY,
+    GROQ_URL, GROQ_MODEL, GROQ_API_KEY,
+    CEREBRAS_URL, CEREBRAS_MODEL, CEREBRAS_API_KEY,
     NIM_URL, NIM_MODEL, NIM_API_KEY,
     GEMINI_URL, GEMINI_MODEL, GEMINI_API_KEY,
+    MAX_TOKENS_CHAT,
 )
 
-# --- system prompt (Vision persona) ------------------------------------
-SYSTEM_PROMPT = (
-    "You are Vision, the AI assistant inside LavOS 2026. "
-    "Be concise: 1-3 sentences unless the user asks for detail. "
-    "When calling tools, use the exact JSON format. "
-    "Never mention being an AI language model — you ARE Vision."
-)
-
-# --- rules engine (imported from rules.py — never-die fallback) ----------
 from brain.rules import rules_match as _rules_match
 
-
-# --- Ollama local chat -------------------------------------------------
-def _ollama_chat(
+# --- cloud chat (OpenAI-compatible) --------------------------------
+def _cloud_chat(
+    url: str,
+    model: str,
+    api_key: str,
     messages: list[dict],
-    model: str = LOCAL_ENGINE,
-    think: bool = THINK_DEFAULT,
     max_tokens: int = MAX_TOKENS_CHAT,
+    vision: bool = False,
     images: Optional[list[str]] = None,
-    tools: Optional[list[dict]] = None,
 ) -> dict:
-    """Send chat to local Ollama. Returns {"text": ..., "tool_call": ...|None}."""
+    """Generic OpenAI-compatible chat. Returns {"text": ..., "engine": ...}."""
+    if not api_key:
+        return {"text": "", "engine": "cloud", "error": "no api key"}
+
     payload: dict = {
         "model": model,
-        "messages": messages,
-        "stream": False,
-        "think": think,
-        "options": {"num_predict": max_tokens},
-    }
-    if images:
-        payload["images"] = images
-    if tools:
-        payload["tools"] = tools
-
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        f"{OLLAMA_HOST}/api/chat",
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        resp = urllib.request.urlopen(req, timeout=120)
-        body = json.loads(resp.read().decode("utf-8"))
-        msg = body.get("message", {})
-        text = msg.get("content", "").strip()
-        thinking = msg.get("thinking", "").strip()
-        # qwen3-vl sometimes puts output in thinking field — use it as fallback
-        if not text and thinking:
-            text = thinking
-        tool_calls = msg.get("tool_calls")
-        tool_call = None
-        if tool_calls:
-            fn = tool_calls[0].get("function", {})
-            tool_call = {"name": fn.get("name", ""), "args": fn.get("arguments", {})}
-        return {"text": text, "tool_call": tool_call, "engine": "local"}
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
-        return {"text": "", "tool_call": None, "engine": "local", "error": str(e)}
-
-
-# --- Cloud: NIM --------------------------------------------------------
-def _nim_chat(messages: list[dict], max_tokens: int = MAX_TOKENS_CHAT) -> dict:
-    """NIM cloud fallback (OpenAI-compatible API)."""
-    if not NIM_API_KEY or not NIM_MODEL:
-        return {"text": "", "engine": "nim", "error": "no key or model"}
-
-    payload = {
-        "model": NIM_MODEL,
         "messages": messages,
         "max_tokens": max_tokens,
         "temperature": 0.3,
         "stream": False,
     }
+
+    # Add images for vision models
+    if vision and images:
+        user_msg = messages[-1] if messages else {"role": "user", "content": ""}
+        content = []
+        for img_path in images:
+            import base64
+            try:
+                with open(img_path, "rb") as f:
+                    img_b64 = base64.b64encode(f.read()).decode()
+                content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}})
+            except FileNotFoundError:
+                continue
+        content.append({"type": "text", "text": user_msg.get("content", "")})
+        messages = messages[:-1] + [{"role": "user", "content": content}]
+        payload["messages"] = messages
+
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        f"{NIM_URL}/chat/completions",
-        data=data,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {NIM_API_KEY}",
-        },
-        method="POST",
-    )
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
+    req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+
     try:
-        resp = urllib.request.urlopen(req, timeout=30)
+        resp = urllib.request.urlopen(req, timeout=60)
         body = json.loads(resp.read().decode("utf-8"))
         text = body["choices"][0]["message"]["content"].strip()
-        return {"text": text, "engine": "nim"}
+        return {"text": text, "engine": model}
     except Exception as e:
-        return {"text": "", "engine": "nim", "error": str(e)}
+        return {"text": "", "engine": model, "error": str(e)}
 
 
-# --- Cloud: Gemini ------------------------------------------------------
-def _gemini_chat(messages: list[dict], max_tokens: int = MAX_TOKENS_CHAT) -> dict:
-    """Gemini cloud fallback."""
+# --- main chat entry point ------------------------------------------
+def chat(
+    user_text: str,
+    context: Optional[dict] = None,
+    tools: Optional[list[dict]] = None,
+    images: Optional[list[str]] = None,
+    system_prompt: Optional[str] = None,
+) -> dict:
+    """
+    Full chat pipeline: rules → Zen → Groq → Cerebras → NIM → Gemini.
+    Returns {"text": str, "tool_call": dict|None, "engine": str}.
+    """
+    ctx = context or {}
+
+    # 1. Instant rules match
+    rules_reply = _rules_match(user_text, ctx)
+    if rules_reply is not None:
+        return {"text": rules_reply, "tool_call": None, "engine": "rules"}
+
+    # 2. Build messages
+    sys = system_prompt or "You are Vision, the AI assistant inside LavOS 2026. Be concise."
+    messages = [{"role": "system", "content": sys}]
+    history = ctx.get("history", [])
+    messages.extend(history[-8:])
+    messages.append({"role": "user", "content": user_text})
+
+    # 3. Try providers in order
+    providers = [
+        ("Zen", ZEN_URL, ZEN_VISION_MODEL if images else ZEN_TEXT_MODEL, ZEN_API_KEY, bool(images)),
+        ("Groq", GROQ_URL, GROQ_MODEL, GROQ_API_KEY, False),
+        ("Cerebras", CEREBRAS_URL, CEREBRAS_MODEL, CEREBRAS_API_KEY, False),
+        ("NIM", NIM_URL, NIM_MODEL, NIM_API_KEY, bool(images)),
+        ("Gemini", None, None, GEMINI_API_KEY, False),
+    ]
+
+    for name, url, model, key, vision in providers:
+        if name == "Gemini":
+            continue  # handled separately below
+        result = _cloud_chat(url, model, key, messages, vision=vision, images=images)
+        if result.get("text"):
+            return result
+
+    # 4. Gemini (different API format)
+    result = _gemini_chat(messages)
+    if result.get("text"):
+        return result
+
+    # 5. Offline fallback
+    return {
+        "text": "I need internet to think. Please connect and try again.",
+        "tool_call": None,
+        "engine": "offline",
+    }
+
+
+# --- Gemini (non-OpenAI format) ------------------------------------
+def _gemini_chat(messages: list[dict]) -> dict:
     if not GEMINI_API_KEY:
         return {"text": "", "engine": "gemini", "error": "no key"}
 
@@ -122,14 +139,10 @@ def _gemini_chat(messages: list[dict], max_tokens: int = MAX_TOKENS_CHAT) -> dic
     url = f"{GEMINI_URL}{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
     payload = {
         "contents": contents,
-        "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
+        "generationConfig": {"maxOutputTokens": MAX_TOKENS_CHAT, "temperature": 0.3},
     }
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        url, data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
+    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
     try:
         resp = urllib.request.urlopen(req, timeout=30)
         body = json.loads(resp.read().decode("utf-8"))
@@ -139,76 +152,17 @@ def _gemini_chat(messages: list[dict], max_tokens: int = MAX_TOKENS_CHAT) -> dic
         return {"text": "", "engine": "gemini", "error": str(e)}
 
 
-# --- main chat entry point ----------------------------------------------
-def chat(
-    user_text: str,
-    context: Optional[dict] = None,
-    tools: Optional[list[dict]] = None,
-    images: Optional[list[str]] = None,
-    system_prompt: Optional[str] = None,
-) -> dict:
-    """
-    Full chat pipeline: rules → local → cloud → offline fallback.
-    Returns {"text": str, "tool_call": dict|None, "engine": str}.
-    """
-    ctx = context or {}
-    sys = system_prompt or SYSTEM_PROMPT
-
-    # 1. Instant rules match
-    rules_reply = _rules_match(user_text, ctx)
-    if rules_reply is not None:
-        return {"text": rules_reply, "tool_call": None, "engine": "rules"}
-
-    # 2. Build messages
-    messages = [{"role": "system", "content": sys}]
-    history = ctx.get("history", [])
-    messages.extend(history[-8:])
-    messages.append({"role": "user", "content": user_text})
-
-    # 3. Local Ollama (try VL if images, else text)
-    if images:
-        result = _ollama_chat(messages, images=images, max_tokens=VL_MAX_TOKENS, tools=tools)
-    else:
-        result = _ollama_chat(messages, tools=tools)
-
-    if result.get("text") or result.get("tool_call"):
-        return result
-
-    # 4. Cloud fallback: NIM → Gemini
-    result = _nim_chat(messages)
-    if result.get("text"):
-        return result
-
-    result = _gemini_chat(messages)
-    if result.get("text"):
-        return result
-
-    # 5. Offline last resort (rules didn't match, local + cloud failed)
-    return {
-        "text": "I'm having trouble reaching my brain right now. Can you try again?",
-        "tool_call": None,
-        "engine": "offline_fallback",
-    }
-
-
-# --- CLI test -----------------------------------------------------------
+# --- CLI test -------------------------------------------------------
 if __name__ == "__main__":
-    print("LavOS LLM Gateway — test mode")
-    print(f"  engine: {LOCAL_ENGINE}")
-    print(f"  think : {THINK_DEFAULT}")
-    print(f"  tokens: {MAX_TOKENS_CHAT}")
+    print("LavOS LLM Gateway — cloud-first mode")
+    print(f"  primary: Zen ({ZEN_TEXT_MODEL})")
+    print(f"  speed  : Groq ({GROQ_MODEL})")
+    print(f"  bulk   : Cerebras ({CEREBRAS_MODEL})")
     print()
 
-    test_queries = [
-        "what's my ram",
-        "add todo buy milk",
-        "open notepad",
-        "who invented the airplane?",
-    ]
-    for q in test_queries:
+    tests = ["hello", "what is 2+2", "open notepad"]
+    for q in tests:
         print(f"> {q}")
         r = chat(q)
         print(f"  [{r['engine']}] {r['text'][:120]}")
-        if r.get("tool_call"):
-            print(f"  tool: {r['tool_call']}")
         print()
