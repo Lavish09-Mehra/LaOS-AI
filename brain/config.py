@@ -30,11 +30,12 @@ ZEN_TEXT_MODEL = "big-pickle"
 
 # Speed tier: Groq (fastest time-to-first-token)
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "openai/gpt-oss-20b"
 
-# Throughput tier: Cerebras (highest tok/s)
+# Throughput tier: Cerebras (needs billing setup — skip for now)
 CEREBRAS_URL = "https://api.cerebras.ai/v1/chat/completions"
-CEREBRAS_MODEL = "llama-3.3-70b"
+CEREBRAS_MODEL = "gpt-oss-120b"
+CEREBRAS_API_KEY = ""  # disabled until billing set up
 
 # Fallback: NVIDIA NIM
 NIM_URL = "https://integrate.api.nvidia.com/v1/chat/completions"

@@ -7,6 +7,7 @@
 
 import json
 import time
+import subprocess
 import urllib.request
 import urllib.error
 from typing import Optional
@@ -108,16 +109,37 @@ def _cloud_chat(
 
     data = json.dumps(payload).encode("utf-8")
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
-    req = urllib.request.Request(url, data=data, headers=headers, method="POST")
 
+    # Try urllib first, fallback to curl subprocess
     try:
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
         resp = urllib.request.urlopen(req, timeout=60)
         body = json.loads(resp.read().decode("utf-8"))
-        text = body["choices"][0]["message"]["content"].strip()
+        msg = body["choices"][0]["message"]
+        text = msg.get("content", "").strip()
+        if not text:
+            text = msg.get("reasoning", "").strip()
         _record_request(provider)
         return {"text": text, "engine": model}
-    except urllib.error.HTTPError as e:
-        return {"text": "", "engine": provider, "error": f"HTTP {e.code}"}
+    except Exception:
+        pass
+
+    # Curl fallback (handles proxy/SSL issues)
+    try:
+        r = subprocess.run(
+            ["curl.exe", "-s", "-m", "30", url,
+             "-H", "Content-Type: application/json",
+             "-H", f"Authorization: Bearer {api_key}",
+             "-d", json.dumps(payload)],
+            capture_output=True, text=True, timeout=35
+        )
+        body = json.loads(r.stdout)
+        msg = body["choices"][0]["message"]
+        text = msg.get("content", "").strip()
+        if not text:
+            text = msg.get("reasoning", "").strip()
+        _record_request(provider)
+        return {"text": text, "engine": model}
     except Exception as e:
         return {"text": "", "engine": provider, "error": str(e)}
 
