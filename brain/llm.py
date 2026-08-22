@@ -25,13 +25,13 @@ from brain.rules import rules_match as _rules_match
 # --- rate limiter (protects free tiers) ----------------------------
 _rate_limits: dict[str, list[float]] = {}
 
-# Free tier limits (conservative — well under actual caps)
+# Free tier limits (conservative — 5 under actual caps for safety)
 FREE_LIMITS = {
-    "zen": {"rpm": 10, "rpd": 200},     # MiMo free tier
-    "groq": {"rpm": 20, "rpd": 500},    # Groq free tier
-    "cerebras": {"rpm": 4, "rpd": 100}, # Cerebras free tier (5 RPM)
-    "nim": {"rpm": 10, "rpd": 200},     # NIM free tier
-    "gemini": {"rpm": 10, "rpd": 200},  # Gemini free tier
+    "zen": {"rpm": 10, "rpd": 200},
+    "groq": {"rpm": 25, "rpd": 14395},  # Actual: 30 RPM, 14400 RPD — we cap 5 under
+    "cerebras": {"rpm": 4, "rpd": 100},
+    "nim": {"rpm": 10, "rpd": 200},
+    "gemini": {"rpm": 10, "rpd": 200},
 }
 
 
