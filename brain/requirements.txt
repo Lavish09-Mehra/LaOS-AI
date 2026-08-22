@@ -1,8 +1,10 @@
-# ============================================================
-# LavOS 2026 — brain Python dependencies
-# Keep versions loose so we can install anywhere fast.
-# Todo(phase 0/1): fill in the real list once tools are chosen:
-# ollama, openai (for NIM/Gemini OpenAI-compat), whisper,
-# porcupine (wake word), pyttsx3, requests, pyscreenshot/ocr,
-# python-dotenv. Install with: pip install -r requirements.txt
-# ============================================================
+# LavOS 2026 — Python dependencies
+# Install: pip install -r brain/requirements.txt
+
+pyttsx3>=2.90
+SpeechRecognition>=3.10
+PyAudio>=0.2.13
+pyperclip>=1.8
+httpx>=0.24
+Pillow>=10.0
+psutil>=5.9

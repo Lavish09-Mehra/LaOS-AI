@@ -4,10 +4,13 @@
 # Each tool returns {"ok": bool, "result": str, "data": dict}.
 # ============================================================
 
-from brain.tools.system import open_app, get_system_info, read_screen
+from brain.tools.system import open_app, get_system_info, read_screen, capture_screen
 from brain.tools.todo import add_todo, list_todos, complete_todo, delete_todo
 from brain.tools.search import web_search
 from brain.tools.permission import ask_permission
+from brain.tools.clipboard import set_clipboard, get_clipboard
+from brain.tools.audit import log_action, get_recent, clear_log
+from brain.tools.report import report_todos
 
 # Ollama tool schema — tells the LLM what tools exist
 TOOL_SCHEMAS: list[dict] = [
@@ -117,6 +120,49 @@ TOOL_SCHEMAS: list[dict] = [
             "parameters": {"type": "object", "properties": {}},
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "set_clipboard",
+            "description": "Copy text to system clipboard",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "text": {"type": "string", "description": "Text to copy to clipboard"}
+                },
+                "required": ["text"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_clipboard",
+            "description": "Read current clipboard content",
+            "parameters": {"type": "object", "properties": {}},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "report_todos",
+            "description": "Generate a markdown report from the current todo list",
+            "parameters": {"type": "object", "properties": {}},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_recent_actions",
+            "description": "Show what Vision has recently done (audit trail)",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "n": {"type": "integer", "description": "Number of recent actions to show (default 10)"}
+                },
+            },
+        },
+    },
 ]
 
 # Tool registry: name -> handler function
@@ -129,6 +175,10 @@ TOOL_REGISTRY: dict = {
     "delete_todo": delete_todo,
     "web_search": web_search,
     "read_screen": read_screen,
+    "set_clipboard": set_clipboard,
+    "get_clipboard": get_clipboard,
+    "report_todos": report_todos,
+    "get_recent_actions": get_recent,
 }
 
 
