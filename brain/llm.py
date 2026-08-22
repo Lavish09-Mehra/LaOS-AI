@@ -26,13 +26,12 @@ from brain.rules import rules_match as _rules_match
 # --- rate limiter (protects free tiers) ----------------------------
 _rate_limits: dict[str, list[float]] = {}
 
-# Free tier limits (conservative — 5 under actual caps for safety)
+# Ultra-conservative free tier limits (way under actual caps)
 FREE_LIMITS = {
-    "zen": {"rpm": 10, "rpd": 200},
-    "groq": {"rpm": 25, "rpd": 14395},  # Actual: 30 RPM, 14400 RPD — we cap 5 under
-    "cerebras": {"rpm": 4, "rpd": 100},
-    "nim": {"rpm": 10, "rpd": 200},
-    "gemini": {"rpm": 10, "rpd": 200},
+    "groq": {"rpm": 20, "rpd": 10000},   # Actual: 30 RPM, 14400 RPD — we use 67%
+    "nim": {"rpm": 5, "rpd": 100},        # Actual: ~10 RPM — we use 50%
+    "zen": {"rpm": 3, "rpd": 50},         # Very limited free tier
+    "gemini": {"rpm": 5, "rpd": 100},     # Actual: ~15 RPM — we use 33%
 }
 
 
@@ -172,10 +171,9 @@ def chat(
 
     # 3. Try providers in order (with rate limiting)
     providers = [
-        ("zen", ZEN_URL, ZEN_VISION_MODEL if images else ZEN_TEXT_MODEL, ZEN_API_KEY, bool(images)),
         ("groq", GROQ_URL, GROQ_MODEL, GROQ_API_KEY, False),
-        ("cerebras", CEREBRAS_URL, CEREBRAS_MODEL, CEREBRAS_API_KEY, False),
         ("nim", NIM_URL, NIM_MODEL, NIM_API_KEY, bool(images)),
+        ("zen", ZEN_URL, ZEN_VISION_MODEL if images else ZEN_TEXT_MODEL, ZEN_API_KEY, bool(images)),
     ]
 
     for name, url, model, key, vision in providers:
