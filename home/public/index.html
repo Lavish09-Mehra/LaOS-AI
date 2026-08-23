@@ -111,6 +111,29 @@
   </div>
 </div>
 
+<!-- ===== EVENT MODAL ===== -->
+<div class="event-modal-overlay" id="eventModalOverlay" onclick="closeEventModal()">
+  <div class="event-modal" onclick="event.stopPropagation()">
+    <div class="event-modal-header">
+      <div class="event-modal-title" id="eventModalDate">Add Event</div>
+      <button class="event-modal-close" onclick="closeEventModal()">&#10005;</button>
+    </div>
+    <div class="event-modal-body">
+      <input type="text" id="eventTitle" class="gnome-input" placeholder="Event title...">
+      <div class="event-categories">
+        <button class="event-cat active" data-cat="personal" onclick="selectEventCat(this)"><span class="cal-swatch" style="background:var(--accent)"></span>Personal</button>
+        <button class="event-cat" data-cat="work" onclick="selectEventCat(this)"><span class="cal-swatch" style="background:#7C93A8"></span>Work</button>
+        <button class="event-cat" data-cat="deadline" onclick="selectEventCat(this)"><span class="cal-swatch" style="background:#A87C8F"></span>Deadline</button>
+      </div>
+      <input type="time" id="eventTime" class="gnome-input" style="margin-top:8px;">
+      <div class="event-modal-actions">
+        <button class="gnome-btn" onclick="closeEventModal()">Cancel</button>
+        <button class="gnome-btn primary" onclick="saveEvent()">Add Event</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== ACTIVITIES OVERVIEW ===== -->
 <div class="overview" id="overview">
   <div class="overview-search">

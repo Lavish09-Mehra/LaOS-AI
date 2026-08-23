@@ -119,6 +119,11 @@ html, body {
 .mini-grid .md.muted { color: var(--text-dim); opacity: .35; }
 .mini-grid .md.today { color: var(--accent); font-weight: 600; }
 .mini-grid .md:hover:not(.muted) { background: var(--surface3); }
+.mini-dot-row { display: flex; gap: 2px; justify-content: center; margin-top: 2px; }
+.mini-dot { width: 3px; height: 3px; border-radius: 50%; }
+.mini-dot.personal { background: var(--accent); }
+.mini-dot.work { background: #7C93A8; }
+.mini-dot.deadline { background: #A87C8F; }
 .cal-nav-section { display: flex; flex-direction: column; gap: 2px; }
 .cal-nav-label {
   font-size: 10px; letter-spacing: 2px; color: var(--text-dim);
@@ -198,6 +203,11 @@ html, body {
   justify-content: center; font-weight: 600;
 }
 .cal-day.selected { box-shadow: inset 0 0 0 1px var(--accent); background: rgba(122,162,247,.08); }
+.cal-dot-row { position: absolute; bottom: 5px; left: 8px; display: flex; gap: 3px; }
+.cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+.cal-dot.personal { background: var(--accent); }
+.cal-dot.work { background: #7C93A8; }
+.cal-dot.deadline { background: #A87C8F; }
 .tray-dropdown {
   position: fixed; top: calc(var(--topbar-h) + 4px); right: 8px;
   width: 280px; background: var(--surface); border: 1px solid var(--border);
@@ -235,6 +245,40 @@ html, body {
 .tray-power-row:hover { background: rgba(247,118,142,.12) !important; }
 
 /* ===== CALENDAR WINDOW ===== */
+.event-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+  display: none; place-items: center; z-index: 200;
+}
+.event-modal-overlay.open { display: grid; animation: fadeIn .2s ease; }
+.event-modal {
+  width: 360px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  animation: scaleIn .25s var(--ease);
+}
+.event-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+}
+.event-modal-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.event-modal-close {
+  width: 24px; height: 24px; border: none; background: transparent;
+  color: var(--text-dim); cursor: pointer; border-radius: 6px;
+  display: grid; place-items: center; font-size: 13px;
+  transition: all .15s var(--ease);
+}
+.event-modal-close:hover { background: var(--red); color: #fff; }
+.event-modal-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.event-modal-body .gnome-input { width: 100%; }
+.event-categories { display: flex; gap: 6px; }
+.event-cat {
+  flex: 1; display: flex; align-items: center; gap: 6px; padding: 7px 8px;
+  border: 1px solid var(--border); border-radius: 6px; background: transparent;
+  color: var(--text-dim); font-size: 11px; cursor: pointer;
+  transition: all .15s var(--ease);
+}
+.event-cat:hover { border-color: var(--text-dim); }
+.event-cat.active { border-color: var(--accent); color: var(--accent); background: rgba(122,162,247,.08); }
+.event-modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
 
 /* ===== ACTIVITIES OVERVIEW ===== */
 .overview {

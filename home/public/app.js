@@ -242,6 +242,58 @@ var calViewMonth = calToday.getMonth();
 var calMiniYear = calViewYear;
 var calMiniMonth = calViewMonth;
 var calSelectedDate = new Date();
+var calEvents = [];
+var eventDateTarget = null;
+
+function loadCalEvents() {
+  try { calEvents = JSON.parse(localStorage.getItem('lavos_cal_events') || '[]'); } catch(e) { calEvents = []; }
+}
+function saveCalEvents() {
+  localStorage.setItem('lavos_cal_events', JSON.stringify(calEvents));
+}
+function getEventsForDate(y, m, d) {
+  var key = y + '-' + (m+1) + '-' + d;
+  return calEvents.filter(function(ev) { return ev.date === key; });
+}
+function openEventModal(y, m, d) {
+  eventDateTarget = { y: y, m: m, d: d };
+  var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  document.getElementById('eventModalDate').textContent = months[m] + ' ' + d + ', ' + y;
+  document.getElementById('eventTitle').value = '';
+  document.getElementById('eventTime').value = '';
+  document.querySelectorAll('.event-cat').forEach(function(c) { c.classList.remove('active'); });
+  document.querySelector('.event-cat[data-cat="personal"]').classList.add('active');
+  document.getElementById('eventModalOverlay').classList.add('open');
+  setTimeout(function() { document.getElementById('eventTitle').focus(); }, 100);
+}
+function closeEventModal() {
+  document.getElementById('eventModalOverlay').classList.remove('open');
+  eventDateTarget = null;
+}
+function selectEventCat(btn) {
+  document.querySelectorAll('.event-cat').forEach(function(c) { c.classList.remove('active'); });
+  btn.classList.add('active');
+}
+function saveEvent() {
+  if (!eventDateTarget) return;
+  var title = document.getElementById('eventTitle').value.trim();
+  if (!title) { document.getElementById('eventTitle').focus(); return; }
+  var cat = document.querySelector('.event-cat.active').dataset.cat;
+  var time = document.getElementById('eventTime').value || '';
+  var key = eventDateTarget.y + '-' + (eventDateTarget.m+1) + '-' + eventDateTarget.d;
+  calEvents.push({ date: key, title: title, cat: cat, time: time, id: Date.now() });
+  saveCalEvents();
+  closeEventModal();
+  renderCalMain();
+  renderCalMini();
+}
+function deleteCalEvent(id) {
+  calEvents = calEvents.filter(function(ev) { return ev.id !== id; });
+  saveCalEvents();
+  renderCalMain();
+  renderCalMini();
+}
+loadCalEvents();
 
 function renderCalMain() {
   document.getElementById('calMonthLabel').textContent = calMonthNames[calViewMonth];
@@ -270,10 +322,22 @@ function addCalCell(grid, num, muted, isToday, isSel) {
   numEl.textContent = num;
   el.appendChild(numEl);
   if (!muted) {
+    var events = getEventsForDate(calViewYear, calViewMonth, num);
+    if (events.length) {
+      var dotRow = document.createElement('div');
+      dotRow.className = 'cal-dot-row';
+      events.slice(0, 3).forEach(function(ev) {
+        var dot = document.createElement('span');
+        dot.className = 'cal-dot ' + ev.cat;
+        dotRow.appendChild(dot);
+      });
+      el.appendChild(dotRow);
+    }
     el.addEventListener('click', (function(d) {
       return function() {
         calSelectedDate = new Date(calViewYear, calViewMonth, d);
         renderCalMain();
+        openEventModal(calViewYear, calViewMonth, d);
       };
     })(num));
   }
@@ -293,12 +357,26 @@ function renderCalMini() {
     var el = document.createElement('div');
     var isToday = d === calToday.getDate() && calMiniMonth === calToday.getMonth() && calMiniYear === calToday.getFullYear();
     el.className = 'md' + (isToday ? ' today' : '');
-    el.textContent = d;
+    var dayText = document.createElement('span');
+    dayText.textContent = d;
+    el.appendChild(dayText);
+    var evts = getEventsForDate(calMiniYear, calMiniMonth, d);
+    if (evts.length) {
+      var dotRow = document.createElement('div');
+      dotRow.className = 'mini-dot-row';
+      evts.slice(0, 2).forEach(function(ev) {
+        var dot = document.createElement('span');
+        dot.className = 'mini-dot ' + ev.cat;
+        dotRow.appendChild(dot);
+      });
+      el.appendChild(dotRow);
+    }
     el.addEventListener('click', (function(d) {
       return function() {
         calViewYear = calMiniYear; calViewMonth = calMiniMonth;
         calSelectedDate = new Date(calMiniYear, calMiniMonth, d);
         renderCalMain(); renderCalMini();
+        openEventModal(calMiniYear, calMiniMonth, d);
       };
     })(d));
     grid.appendChild(el);
