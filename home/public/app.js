@@ -13,7 +13,7 @@ var windowPositions = {
   'win-files': { top: 100, left: 200 },
   'win-browser': { top: 90, left: 240 },
   'win-settings': { top: 70, left: 180 },
-  'win-todos': { top: 120, left: 300 },
+  'win-notes': { top: 100, left: 200 },
   'win-audit': { top: 110, left: 260 },
   'win-stream': { top: 90, left: 220 }
 };
@@ -208,37 +208,67 @@ document.getElementById('overview').addEventListener('click', function(e) {
 });
 
 // ===== TRAY =====
-function toggleTray() {
+function openTray() {
   closeCal();
-  document.getElementById('trayDropdown').classList.toggle('open');
+  document.getElementById('trayDropdown').classList.add('open');
 }
 function closeTray() {
   var el = document.getElementById('trayDropdown');
   el.style.animation = 'fadeOut .15s ease forwards';
   setTimeout(function() { el.classList.remove('open'); el.style.animation = ''; }, 150);
 }
+document.getElementById('systemTray').addEventListener('mouseenter', function() {
+  openTray();
+});
+document.getElementById('systemTray').addEventListener('mouseleave', function(e) {
+  var dd = document.getElementById('trayDropdown');
+  setTimeout(function() {
+    if (!dd.matches(':hover') && !document.getElementById('systemTray').matches(':hover')) closeTray();
+  }, 200);
+});
+document.getElementById('trayDropdown').addEventListener('mouseleave', function() {
+  if (!document.getElementById('systemTray').matches(':hover')) closeTray();
+});
 document.getElementById('systemTray').addEventListener('click', function(e) {
   e.stopPropagation();
-  toggleTray();
+  if (document.getElementById('trayDropdown').classList.contains('open')) closeTray();
+  else openTray();
 });
 
 // ===== CALENDAR =====
-function toggleCal() {
+function openCal() {
   closeTray();
-  document.getElementById('calPopup').classList.toggle('open');
+  document.getElementById('calPopup').classList.add('open');
 }
 function closeCal() {
   var el = document.getElementById('calPopup');
   el.style.animation = 'fadeOut .15s ease forwards';
   setTimeout(function() { el.classList.remove('open'); el.style.animation = ''; }, 150);
 }
+document.getElementById('clockBtn').addEventListener('mouseenter', function() {
+  openCal();
+});
+document.getElementById('clockBtn').addEventListener('mouseleave', function(e) {
+  var cp = document.getElementById('calPopup');
+  setTimeout(function() {
+    if (!cp.matches(':hover') && !document.getElementById('clockBtn').matches(':hover')) closeCal();
+  }, 200);
+});
+document.getElementById('calPopup').addEventListener('mouseleave', function() {
+  if (!document.getElementById('clockBtn').matches(':hover')) closeCal();
+});
 document.getElementById('clockBtn').addEventListener('click', function(e) {
   e.stopPropagation();
-  toggleCal();
+  if (document.getElementById('calPopup').classList.contains('open')) closeCal();
+  else openCal();
 });
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.tray-dropdown') && !e.target.closest('.system-tray')) closeTray();
   if (!e.target.closest('.cal-popup') && !e.target.closest('.clock-btn')) closeCal();
+});
+document.addEventListener('mouseleave', function() {
+  closeTray();
+  closeCal();
 });
 
 // ===== CLOCK / CALENDAR =====
@@ -389,40 +419,72 @@ function analyzeStream() {
   socket.emit('chat', { text: 'describe what you see on my screen', session_id: sessionId });
 }
 
-// ===== TODOS =====
-function fetchTodos() {
-  fetch('/api/todos').then(function(r){return r.json();}).then(function(d){
-    if (d.ok) renderTodos(d.data || []);
-  }).catch(function(){});
+// ===== NOTES =====
+var notes = [];
+var activeNoteId = null;
+
+function loadNotes() {
+  try { notes = JSON.parse(localStorage.getItem('lavos_notes') || '[]'); } catch(e) { notes = []; }
+  if (!notes.length) { createNote(); return; }
+  renderNotesSidebar();
+  selectNote(notes[0].id);
 }
-function renderTodos(todos) {
-  var list = document.getElementById('todoList');
-  if (!todos.length) { list.innerHTML = '<div style="color:var(--text-muted);padding:16px;text-align:center;">No todos</div>'; return; }
-  list.innerHTML = '';
-  todos.forEach(function(t) {
+function saveNotes() {
+  localStorage.setItem('lavos_notes', JSON.stringify(notes));
+}
+function createNote() {
+  var note = { id: Date.now(), title: 'Untitled', content: '', created: new Date().toISOString() };
+  notes.unshift(note);
+  saveNotes();
+  renderNotesSidebar();
+  selectNote(note.id);
+}
+function deleteNote(id, e) {
+  if (e) e.stopPropagation();
+  notes = notes.filter(function(n) { return n.id !== id; });
+  if (!notes.length) createNote();
+  saveNotes();
+  renderNotesSidebar();
+  if (activeNoteId === id) selectNote(notes[0].id);
+}
+function selectNote(id) {
+  activeNoteId = id;
+  var note = notes.find(function(n) { return n.id === id; });
+  if (!note) return;
+  document.getElementById('notesArea').value = note.content;
+  renderNotesSidebar();
+}
+function renderNotesSidebar() {
+  var sidebar = document.getElementById('notesSidebar');
+  var search = (document.getElementById('notesSearch').value || '').toLowerCase();
+  var filtered = notes.filter(function(n) {
+    return !search || n.title.toLowerCase().includes(search) || n.content.toLowerCase().includes(search);
+  });
+  sidebar.innerHTML = '';
+  filtered.forEach(function(n) {
     var div = document.createElement('div');
-    div.className = 'todo-item' + (t.done ? ' done' : '');
-    div.innerHTML = '<div class="todo-check">' + (t.done ? '&#10003;' : '') + '</div><span>' + esc(t.text) + '</span>';
-    div.onclick = function() {
-      if (!t.done) fetch('/api/todos/'+t.id+'/complete',{method:'POST'}).then(function(){fetchTodos();});
-    };
-    list.appendChild(div);
+    div.className = 'note-entry' + (n.id === activeNoteId ? ' active' : '');
+    var title = n.title || 'Untitled';
+    var preview = n.content.substring(0, 40) || 'Empty note';
+    div.innerHTML = '<div class="note-entry-title">' + esc(title) + '</div>'
+      + '<div class="note-entry-preview">' + esc(preview) + '</div>'
+      + '<button class="note-entry-delete" onclick="deleteNote(' + n.id + ',event)">&#10005;</button>';
+    div.onclick = function() { selectNote(n.id); };
+    sidebar.appendChild(div);
   });
 }
-function addTodoFromInput() {
-  var input = document.getElementById('todoInput');
-  var text = input.value.trim();
-  if (!text) return;
-  fetch('/api/todos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text})})
-  .then(function(){ input.value=''; fetchTodos(); });
-}
-document.getElementById('todoInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') addTodoFromInput();
+function filterNotes() { renderNotesSidebar(); }
+document.getElementById('notesArea').addEventListener('input', function() {
+  if (!activeNoteId) return;
+  var note = notes.find(function(n) { return n.id === activeNoteId; });
+  if (!note) return;
+  note.content = this.value;
+  var firstLine = this.value.split('\n')[0].substring(0, 30) || 'Untitled';
+  note.title = firstLine;
+  saveNotes();
+  renderNotesSidebar();
 });
-function requestTodoReport() {
-  addAiMessage('Generate a report of my todos', 'user');
-  socket.emit('chat', { text: 'generate a report of my todos', session_id: sessionId });
-}
+document.addEventListener('DOMContentLoaded', loadNotes);
 
 // ===== AUDIT =====
 function fetchAudit() {
@@ -914,5 +976,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ===== INIT =====
 loadSettings();
-fetchTodos();
+loadNotes();
 fetchAudit();

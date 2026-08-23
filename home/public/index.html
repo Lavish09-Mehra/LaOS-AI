@@ -96,8 +96,8 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     </button>
     <div class="dock-sep"></div>
-    <button class="dock-item" data-app="todos" title="Todos" onclick="dockClick('todos')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    <button class="dock-item" data-app="notes" title="Notes" onclick="dockClick('notes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
     </button>
     <button class="dock-item" data-app="audit" title="Audit Log" onclick="dockClick('audit')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
@@ -236,24 +236,26 @@
   </div>
 </div>
 
-<!-- Todos -->
-<div class="window" id="win-todos">
+<!-- Notes -->
+<div class="window" id="win-notes">
   <div class="win-header">
-    <div class="win-title">Todos</div>
+    <div class="win-title">Notes</div>
     <div class="win-controls">
-<button class="win-btn win-close" onclick="closeApp('win-todos')"></button>
-          <button class="win-btn win-min" onclick="minimizeApp('win-todos')"></button>
-          <button class="win-btn win-max" onclick="toggleFullScreen('win-todos')"></button>
+      <button class="win-btn win-close" onclick="closeApp('win-notes')"></button>
+      <button class="win-btn win-min" onclick="minimizeApp('win-notes')"></button>
+      <button class="win-btn win-max" onclick="toggleFullScreen('win-notes')"></button>
     </div>
   </div>
-  <div class="win-body">
-    <div class="todo-input-row">
-      <input type="text" id="todoInput" placeholder="New todo..." class="gnome-input">
-      <button class="gnome-btn primary" onclick="addTodoFromInput()">Add</button>
+  <div class="win-body notes-body">
+    <div class="notes-toolbar">
+      <button class="gnome-btn primary" onclick="createNote()">+ New Note</button>
+      <input type="text" id="notesSearch" placeholder="Search notes..." class="gnome-input" oninput="filterNotes()">
     </div>
-    <div class="todo-list" id="todoList"></div>
-    <div style="margin-top:8px;">
-      <button class="gnome-btn" onclick="requestTodoReport()">Generate Report</button>
+    <div class="notes-layout">
+      <div class="notes-sidebar" id="notesSidebar"></div>
+      <div class="notes-editor" id="notesEditor">
+        <textarea id="notesArea" placeholder="Select a note or create a new one..." class="notes-textarea"></textarea>
+      </div>
     </div>
   </div>
 </div>

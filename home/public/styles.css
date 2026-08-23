@@ -302,7 +302,7 @@ html, body {
 #win-files { width: 520px; height: 360px; top: 100px; left: 200px; }
 #win-browser { width: 600px; height: 400px; top: 90px; left: 240px; }
 #win-settings { width: 560px; height: 420px; top: 70px; left: 180px; }
-#win-todos { width: 420px; height: 380px; top: 120px; left: 300px; }
+#win-notes { width: 560px; height: 400px; top: 100px; left: 200px; }
 #win-audit { width: 480px; height: 340px; top: 110px; left: 260px; }
 #win-stream { width: 480px; height: 380px; top: 90px; left: 220px; }
 .win-header {
@@ -505,33 +505,34 @@ html, body {
 .stream-controls { display: flex; gap: 8px; margin-top: 10px; }
 .stream-status { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
 
-/* Todos */
-.todo-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
-.todo-input-row .gnome-input { flex: 1; }
-.todo-list { max-height: 300px; overflow: auto; }
-.todo-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 8px; border-bottom: 1px solid var(--border);
-  cursor: pointer; font-size: 12.5px; color: var(--text-dim);
-  transition: all .2s var(--ease);
-  animation: slideUp .25s var(--ease) both;
+/* Notes */
+.notes-body { padding: 0 !important; display: flex; flex-direction: column; }
+.notes-toolbar { display: flex; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+.notes-toolbar .gnome-input { flex: 1; font-size: 12px; }
+.notes-layout { display: flex; flex: 1; overflow: hidden; }
+.notes-sidebar {
+  width: 160px; border-right: 1px solid var(--border); overflow-y: auto;
+  background: var(--surface2);
 }
-.todo-item:nth-child(1) { animation-delay: 0s; }
-.todo-item:nth-child(2) { animation-delay: .03s; }
-.todo-item:nth-child(3) { animation-delay: .06s; }
-.todo-item:nth-child(4) { animation-delay: .09s; }
-.todo-item:nth-child(5) { animation-delay: .12s; }
-.todo-item:hover { background: var(--surface2); transform: translateX(4px); }
-.todo-item.done { text-decoration: line-through; opacity: .35; }
-.todo-check {
-  width: 18px; height: 18px; border: 2px solid var(--border);
-  border-radius: 5px; flex-shrink: 0; display: grid; place-items: center;
-  font-size: 11px; color: var(--green);
-  transition: all .3s var(--ease-bounce);
+.note-entry {
+  padding: 10px 12px; cursor: pointer; border-bottom: 1px solid var(--border);
+  font-size: 12px; transition: all .2s var(--ease);
 }
-.todo-item.done .todo-check {
-  background: var(--green); border-color: var(--green); color: #fff;
-  animation: popIn .3s var(--ease-bounce);
+.note-entry:hover { background: var(--surface3); }
+.note-entry.active { background: var(--accent); color: #fff; border-left: 3px solid var(--accent); }
+.note-entry-title { font-weight: 600; font-size: 12.5px; margin-bottom: 2px; }
+.note-entry-preview { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-entry.active .note-entry-preview { color: rgba(255,255,255,.7); }
+.note-entry-delete {
+  float: right; background: none; border: none; color: var(--red); cursor: pointer;
+  font-size: 11px; opacity: 0; transition: opacity .2s;
+}
+.note-entry:hover .note-entry-delete { opacity: 1; }
+.notes-editor { flex: 1; display: flex; }
+.notes-textarea {
+  width: 100%; border: none; background: transparent; color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+  padding: 14px; resize: none; outline: none;
 }
 
 /* Audit */
