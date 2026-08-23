@@ -430,7 +430,91 @@ html, body {
 /* Window default sizes */
 #win-terminal { width: 680px; height: 420px; top: 80px; left: 120px; }
 #win-files { width: 520px; height: 360px; top: 100px; left: 200px; }
-#win-browser { width: 600px; height: 400px; top: 90px; left: 240px; }
+#win-browser { width: 800px; height: 520px; top: 70px; left: 200px; }
+/* Browser tabs */
+.browser-tabs { padding: 0 0 0 8px !important; gap: 0 !important; }
+.browser-tab {
+  display: flex; align-items: center; gap: 6px; padding: 4px 12px;
+  background: var(--surface); border-radius: 8px 8px 0 0;
+  font-size: 11px; color: var(--text-dim); cursor: pointer;
+  border: 1px solid var(--border); border-bottom: none;
+  max-width: 160px; overflow: hidden; white-space: nowrap;
+  margin-top: auto; height: 28px; transition: background .15s;
+}
+.browser-tab.active { background: var(--surface2); color: var(--text); }
+.browser-tab-icon { flex-shrink: 0; }
+.browser-new-tab {
+  width: 24px; height: 24px; border: none; background: transparent;
+  color: var(--text-dim); font-size: 16px; cursor: pointer;
+  border-radius: 6px; display: grid; place-items: center;
+  margin-left: 4px; transition: all .15s;
+}
+.browser-new-tab:hover { background: var(--surface2); color: var(--text); }
+/* Browser toolbar */
+.browser-toolbar {
+  display: flex; align-items: center; gap: 4px; padding: 6px 10px;
+  background: var(--surface2); border-bottom: 1px solid var(--border);
+}
+.browser-nav-btn {
+  width: 28px; height: 28px; border: none; background: transparent;
+  color: var(--text-dim); font-size: 18px; cursor: pointer;
+  border-radius: 6px; display: grid; place-items: center;
+  transition: all .15s;
+}
+.browser-nav-btn:hover { background: var(--surface3); color: var(--text); }
+.browser-address-bar {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0 10px; height: 30px;
+  transition: border-color .2s;
+}
+.browser-address-bar:focus-within { border-color: var(--accent); }
+.browser-url {
+  flex: 1; border: none; background: transparent; color: var(--text);
+  font-size: 12px; outline: none; font-family: inherit;
+}
+.browser-url::placeholder { color: var(--text-dim); }
+.browser-go-btn {
+  width: 22px; height: 22px; border: none; background: var(--accent);
+  color: #fff; font-size: 14px; cursor: pointer; border-radius: 5px;
+  display: grid; place-items: center; transition: opacity .15s;
+}
+.browser-go-btn:hover { opacity: .8; }
+/* Browser body */
+.browser-body { flex: 1; overflow: hidden; background: var(--surface); }
+.browser-newtab {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px;
+  padding: 20px;
+}
+.coccoc-logo { animation: float 3s ease-in-out infinite; }
+.coccoc-title { font-size: 20px; font-weight: 700; color: #1AAD19; letter-spacing: 1px; }
+.browser-search-box {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 16px; width: 400px;
+  max-width: 90%; transition: border-color .2s;
+}
+.browser-search-box:focus-within { border-color: var(--accent); }
+.browser-search-input {
+  flex: 1; border: none; background: transparent; color: var(--text);
+  font-size: 14px; outline: none; font-family: inherit;
+}
+.browser-search-input::placeholder { color: var(--text-dim); }
+.browser-shortcuts { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+.browser-shortcut {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; padding: 10px; border-radius: 10px;
+  transition: all .2s var(--ease); width: 72px;
+}
+.browser-shortcut:hover { background: var(--surface2); transform: translateY(-3px); }
+.shortcut-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: grid; place-items: center; color: #fff;
+  font-size: 14px; font-weight: 700;
+}
+.browser-shortcut span { font-size: 10px; color: var(--text-dim); }
+.browser-frame { width: 100%; height: 100%; border: none; background: #fff; }
 #win-settings { width: 560px; height: 420px; top: 70px; left: 180px; }
 #win-notes { width: 560px; height: 400px; top: 100px; left: 200px; }
 #win-audit { width: 480px; height: 340px; top: 110px; left: 260px; }

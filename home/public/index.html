@@ -206,20 +206,74 @@
 </div>
 
 <!-- Browser -->
-<div class="window" id="win-browser">
-  <div class="win-header">
-    <div class="win-title">Browser</div>
+<div class="window browser-window" id="win-browser">
+  <div class="win-header browser-tabs">
+    <div class="browser-tab active">
+      <svg class="browser-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>
+      <span>New Tab</span>
+    </div>
+    <button class="browser-new-tab" title="New Tab">+</button>
     <div class="win-controls">
-<button class="win-btn win-close" onclick="closeApp('win-browser')"></button>
-          <button class="win-btn win-min" onclick="minimizeApp('win-browser')"></button>
-          <button class="win-btn win-max" onclick="toggleFullScreen('win-browser')"></button>
+      <button class="win-btn win-close" onclick="closeApp('win-browser')"></button>
+      <button class="win-btn win-min" onclick="minimizeApp('win-browser')"></button>
+      <button class="win-btn win-max" onclick="toggleFullScreen('win-browser')"></button>
     </div>
   </div>
-  <div class="win-body" style="display:flex;align-items:center;justify-content:center;color:var(--text-dim);">
-    <div style="text-align:center;">
-      <div style="font-size:48px;margin-bottom:12px;">&#127760;</div>
-      <div>New Tab</div>
+  <div class="browser-toolbar">
+    <button class="browser-nav-btn" onclick="browserBack()" title="Back">&#8249;</button>
+    <button class="browser-nav-btn" onclick="browserForward()" title="Forward">&#8250;</button>
+    <button class="browser-nav-btn" onclick="browserRefresh()" title="Refresh">&#8635;</button>
+    <div class="browser-address-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <input type="text" id="browserUrl" class="browser-url" placeholder="Search or enter URL" value="coccoc://newtab">
+      <button class="browser-go-btn" onclick="browserNavigate()">&#8617;</button>
     </div>
+    <button class="browser-nav-btn" onclick="browserHome()" title="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+    </button>
+  </div>
+  <div class="browser-body">
+    <div class="browser-newtab" id="browserNewtab">
+      <div class="coccoc-logo">
+        <svg viewBox="0 0 120 120" width="80" height="80">
+          <circle cx="60" cy="60" r="56" fill="#1AAD19" opacity="0.15"/>
+          <circle cx="60" cy="60" r="42" fill="#1AAD19" opacity="0.25"/>
+          <text x="60" y="72" text-anchor="middle" font-size="42" font-weight="bold" fill="#1AAD19" font-family="Arial">C</text>
+        </svg>
+      </div>
+      <div class="coccoc-title">C&#7889;c C&#7889;c</div>
+      <div class="browser-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="browserSearch" class="browser-search-input" placeholder="Search the web..." onkeydown="if(event.key==='Enter')browserSearchWeb()">
+      </div>
+      <div class="browser-shortcuts">
+        <div class="browser-shortcut" onclick="browserGo('https://www.google.com')">
+          <div class="shortcut-icon" style="background:#4285F4;">G</div>
+          <span>Google</span>
+        </div>
+        <div class="browser-shortcut" onclick="browserGo('https://www.youtube.com')">
+          <div class="shortcut-icon" style="background:#FF0000;">YT</div>
+          <span>YouTube</span>
+        </div>
+        <div class="browser-shortcut" onclick="browserGo('https://github.com')">
+          <div class="shortcut-icon" style="background:#333;">GH</div>
+          <span>GitHub</span>
+        </div>
+        <div class="browser-shortcut" onclick="browserGo('https://www.facebook.com')">
+          <div class="shortcut-icon" style="background:#1877F2;">FB</div>
+          <span>Facebook</span>
+        </div>
+        <div class="browser-shortcut" onclick="browserGo('https://twitter.com')">
+          <div class="shortcut-icon" style="background:#1DA1F2;">X</div>
+          <span>Twitter</span>
+        </div>
+        <div class="browser-shortcut" onclick="browserGo('https://www.wikipedia.org')">
+          <div class="shortcut-icon" style="background:#666;">W</div>
+          <span>Wikipedia</span>
+        </div>
+      </div>
+    </div>
+    <iframe id="browserFrame" class="browser-frame" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" style="display:none;"></iframe>
   </div>
 </div>
 

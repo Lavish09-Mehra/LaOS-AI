@@ -427,6 +427,47 @@ function tick() {
 }
 setInterval(tick, 1000); tick();
 
+// ===== BROWSER =====
+function browserGo(url) {
+  var frame = document.getElementById('browserFrame');
+  var newtab = document.getElementById('browserNewtab');
+  var urlBar = document.getElementById('browserUrl');
+  frame.src = url;
+  frame.style.display = 'block';
+  newtab.style.display = 'none';
+  urlBar.value = url;
+  document.querySelector('.browser-tab span').textContent = url.replace('https://','').replace('http://','').split('/')[0];
+}
+function browserNavigate() {
+  var url = document.getElementById('browserUrl').value.trim();
+  if (!url) return;
+  if (!url.startsWith('http') && !url.startsWith('coccoc://')) url = 'https://' + url;
+  if (url.startsWith('coccoc://newtab')) {
+    document.getElementById('browserFrame').style.display = 'none';
+    document.getElementById('browserNewtab').style.display = 'flex';
+    document.querySelector('.browser-tab span').textContent = 'New Tab';
+    return;
+  }
+  browserGo(url);
+}
+function browserSearchWeb() {
+  var q = document.getElementById('browserSearch').value.trim();
+  if (!q) return;
+  browserGo('https://www.google.com/search?igu=1');
+}
+function browserBack() { document.getElementById('browserFrame').contentWindow.history.back(); }
+function browserForward() { document.getElementById('browserFrame').contentWindow.history.forward(); }
+function browserRefresh() { document.getElementById('browserFrame').contentWindow.location.reload(); }
+function browserHome() {
+  document.getElementById('browserFrame').style.display = 'none';
+  document.getElementById('browserNewtab').style.display = 'flex';
+  document.getElementById('browserUrl').value = 'coccoc://newtab';
+  document.querySelector('.browser-tab span').textContent = 'New Tab';
+}
+document.getElementById('browserUrl').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') browserNavigate();
+});
+
 // ===== CHAT / AI PANEL =====
 function toggleAiPanel() {
   var panel = document.getElementById('aiPanel');
