@@ -8,294 +8,296 @@
 </head>
 <body>
 
-  <div class="desktop"></div>
-
-  <!-- TERMINAL -->
-  <div class="window" id="win-terminal">
-    <div class="win-head"><span class="title">terminal</span><span class="close" onclick="closeApp('win-terminal')">&#10005;</span></div>
-    <div class="term-body" id="termBody">
-      <div class="term-line">lavos: boot</div>
-      <div class="term-line">engine: connecting...</div>
-      <div class="term-line">status: ready</div>
-      <div class="term-line"><span class="prompt">$</span> <span class="cursor"></span></div>
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="topbar-left">
+    <button class="activities-btn" id="activitiesBtn">Activities</button>
+  </div>
+  <div class="topbar-center">
+    <button class="clock-btn" id="clockBtn">
+      <span id="topClock">--:--</span>
+    </button>
+  </div>
+  <div class="topbar-right">
+    <div class="system-tray" id="systemTray">
+      <span class="tray-icon" id="trayVolume" title="Volume">&#128266;</span>
+      <span class="tray-icon" id="trayNetwork" title="Network">&#128246;</span>
+      <span class="tray-icon" id="trayBattery" title="Battery">&#128267;</span>
+      <span class="tray-icon tray-power" id="trayPower" title="Power">&#9211;</span>
     </div>
   </div>
+</div>
 
-  <!-- BROWSER -->
-  <div class="window" id="win-coccoc">
-    <div class="win-head"><span class="title">browser</span><span class="close" onclick="closeApp('win-coccoc')">&#10005;</span></div>
-    <div class="win-body" style="display:flex;align-items:center;justify-content:center;color:var(--text-dim);">browser placeholder</div>
+<!-- ===== SYSTEM TRAY DROPDOWN ===== -->
+<div class="tray-dropdown" id="trayDropdown">
+  <div class="tray-row">
+    <span>&#128266; Volume</span>
+    <input type="range" class="tray-slider" id="volSlider" min="0" max="100" value="80">
   </div>
-
-  <!-- FILES -->
-  <div class="window" id="win-files">
-    <div class="win-head"><span class="title">files</span><span class="close" onclick="closeApp('win-files')">&#10005;</span></div>
-    <div class="win-body">
-      <div style="color:var(--text-dim); font-size:12px;">home / projects / system / logs</div>
-    </div>
+  <div class="tray-row">
+    <span>&#128161; Brightness</span>
+    <input type="range" class="tray-slider" id="brightSlider" min="0" max="100" value="100">
   </div>
+  <div class="tray-row">
+    <span>&#128246; Wi-Fi</span>
+    <span class="tray-val">Connected</span>
+  </div>
+  <div class="tray-row">
+    <span>&#128267; Battery</span>
+    <span class="tray-val" id="trayBatteryPct">--</span>
+  </div>
+  <div class="tray-divider"></div>
+  <div class="tray-row tray-row-btn" onclick="openApp('win-settings')">
+    <span>&#9881; Settings</span>
+  </div>
+  <div class="tray-row tray-row-btn" onclick="screenLock()">
+    <span>&#128274; Lock</span>
+  </div>
+  <div class="tray-divider"></div>
+  <div class="tray-row tray-row-btn tray-power-row">
+    <span>&#9211; Power Off</span>
+  </div>
+</div>
 
-  <!-- SETTINGS -->
-  <div class="window" id="win-settings">
-    <div class="win-head"><span class="title">settings</span><span class="close" onclick="closeApp('win-settings')">&#10005;</span></div>
-    <div class="win-body">
+<!-- ===== CALENDAR POPUP ===== -->
+<div class="cal-popup" id="calPopup">
+  <div class="cal-header">
+    <div class="cal-big-time" id="calBigTime">--:--</div>
+    <div class="cal-big-date" id="calBigDate">--</div>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+</div>
 
-      <div class="settings-section">General</div>
-      <div class="settings-row"><span>OS Version</span><span>LavOS 2026</span></div>
-      <div class="settings-row"><span>Default Browser</span><span>Coc Coc</span></div>
-      <div class="settings-row"><span>Shell</span><span>bash</span></div>
-      <div class="settings-row">
-        <span>AI Name</span>
-        <input class="settings-input" id="cfgAiName" placeholder="e.g. My AI" style="width:120px;">
-      </div>
-      <div class="settings-row">
-        <span>Wake Word</span>
-        <input class="settings-input" id="cfgWakeWord" placeholder="e.g. hey computer" style="width:120px;">
-      </div>
+<!-- ===== ACTIVITIES OVERVIEW ===== -->
+<div class="overview" id="overview">
+  <div class="overview-search">
+    <input type="text" id="overviewSearch" placeholder="Type to search...">
+  </div>
+  <div class="overview-windows" id="overviewWindows"></div>
+  <div class="overview-dash" id="overviewDash"></div>
+</div>
 
-      <div class="settings-section">Voice</div>
-      <div class="settings-row">
-        <span>Voice Output</span>
-        <label class="toggle"><input type="checkbox" id="cfgVoiceOn"><span class="slider"></span></label>
-      </div>
-      <div class="settings-row">
-        <span>Voice Engine</span>
-        <select class="settings-select" id="cfgVoiceEngine">
-          <option value="browser">Browser TTS</option>
-          <option value="pyttsx3">pyttsx3</option>
-          <option value="off">Off</option>
-        </select>
-      </div>
+<!-- ===== LEFT DOCK — Dynamic Island ===== -->
+<div class="dock-island" id="dockIsland">
+  <div class="dock-pill" id="dockPill">
+    <button class="dock-item" data-app="desktop" title="Desktop" onclick="dockClick('desktop')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+    </button>
+    <button class="dock-item" data-app="terminal" title="Terminal" onclick="dockClick('terminal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 9l4 3-4 3"/><path d="M12 15h6"/></svg>
+    </button>
+    <button class="dock-item" data-app="files" title="Files" onclick="dockClick('files')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+    </button>
+    <button class="dock-item" data-app="browser" title="Browser" onclick="dockClick('browser')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>
+    </button>
+    <button class="dock-item" data-app="settings" title="Settings" onclick="dockClick('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+    <div class="dock-sep"></div>
+    <button class="dock-item" data-app="todos" title="Todos" onclick="dockClick('todos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    </button>
+    <button class="dock-item" data-app="audit" title="Audit Log" onclick="dockClick('audit')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+    </button>
+    <button class="dock-item" data-app="stream" title="Screen Stream" onclick="dockClick('stream')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><circle cx="12" cy="10" r="3"/></svg>
+    </button>
+  </div>
+</div>
 
-      <div class="settings-section">Screen</div>
-      <div class="settings-row">
-        <span>Screen Capture</span>
-        <label class="toggle"><input type="checkbox" id="cfgStreamOn"><span class="slider"></span></label>
-      </div>
-      <div class="settings-row">
-        <span>Capture FPS</span>
-        <select class="settings-select" id="cfgStreamFps">
-          <option value="1">1 fps</option>
-          <option value="2">2 fps</option>
-          <option value="5">5 fps</option>
-        </select>
-      </div>
+<!-- ===== DESKTOP AREA ===== -->
+<div class="desktop" id="desktop">
+  <div class="desktop-bg"></div>
+</div>
 
-      <div class="settings-section">Cloud Providers</div>
-      <div class="settings-row">
-        <span>Groq API Key</span>
-        <input class="settings-input" id="cfgGroqKey" type="password" placeholder="gsk_...">
-      </div>
-      <div class="settings-row">
-        <span>Groq Model</span>
-        <input class="settings-input" id="cfgGroqModel" placeholder="openai/gpt-oss-20b" style="width:140px;">
-      </div>
-      <div class="settings-row">
-        <span>NIM API Key</span>
-        <input class="settings-input" id="cfgNimKey" type="password" placeholder="nvapi-...">
-      </div>
-      <div class="settings-row">
-        <span>NIM Model</span>
-        <input class="settings-input" id="cfgNimModel" placeholder="meta/llama-3.2-11b-vision-instruct" style="width:140px;">
-      </div>
-      <div class="settings-row">
-        <span>Zen API Key</span>
-        <input class="settings-input" id="cfgZenKey" type="password" placeholder="optional">
-      </div>
+<!-- ===== WINDOWS ===== -->
 
-      <div class="settings-section">Ollama (Local)</div>
-      <div class="settings-row">
-        <span>Ollama Enabled</span>
-        <label class="toggle"><input type="checkbox" id="cfgOllamaOn"><span class="slider"></span></label>
-      </div>
-      <div class="settings-row">
-        <span>Ollama URL</span>
-        <input class="settings-input" id="cfgOllamaUrl" placeholder="http://127.0.0.1:11434" style="width:160px;">
-      </div>
-      <div class="settings-row">
-        <span>Chat Model</span>
-        <input class="settings-input" id="cfgOllamaChat" placeholder="qwen3:4b" style="width:120px;">
-      </div>
-      <div class="settings-row">
-        <span>Vision Model</span>
-        <input class="settings-input" id="cfgOllamaVision" placeholder="qwen3-vl:4b" style="width:120px;">
-      </div>
-
-      <div class="settings-section">Permissions</div>
-      <div class="settings-row">
-        <span>Ask Before Actions</span>
-        <select class="settings-select" id="cfgPermissions">
-          <option value="always">Always Ask</option>
-          <option value="never">Never Ask</option>
-        </select>
-      </div>
-
-      <div style="padding:12px 0;">
-        <button class="settings-save-btn" id="saveSettingsBtn">Save Settings</button>
-      </div>
-
+<!-- Terminal -->
+<div class="window term-window" id="win-terminal">
+  <div class="win-header">
+    <div class="win-title">user@lavos: ~</div>
+    <div class="win-controls">
+      <button class="win-btn win-min" onclick="minimizeApp('win-terminal')">&#8722;</button>
+      <button class="win-btn win-max" onclick="maximizeApp('win-terminal')">&#9633;</button>
+      <button class="win-btn win-close" onclick="closeApp('win-terminal')">&#10005;</button>
     </div>
   </div>
+  <div class="term-body" id="termBody" onclick="termFocus()">
+    <div id="termOutput"></div>
+    <div class="term-input-line">
+      <span class="term-prompt">user@lavos<span class="term-dim">:</span><span class="term-blue">~</span>$ </span>
+      <span class="term-input-display" id="termDisplay"></span>
+      <span class="term-cursor"></span>
+    </div>
+    <input type="text" id="termInput" class="term-hidden-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
+</div>
 
-  <!-- SCREEN STREAM -->
-  <div class="window" id="win-stream">
-    <div class="win-head"><span class="title">screen stream</span><span class="close" onclick="closeApp('win-stream')">&#10005;</span></div>
-    <div class="win-body">
-      <div class="stream-preview" id="streamPreview">stream inactive</div>
-      <div class="stream-controls">
-        <button class="btn-sm" id="streamStartBtn">Start</button>
-        <button class="btn-sm" id="streamStopBtn" disabled>Stop</button>
-        <button class="btn-sm" id="streamAnalyzeBtn" disabled>Analyze</button>
-      </div>
-      <div class="stream-status" id="streamStatus">stopped</div>
+<!-- Browser -->
+<div class="window" id="win-browser">
+  <div class="win-header">
+    <div class="win-title">Browser</div>
+    <div class="win-controls">
+      <button class="win-btn win-min" onclick="minimizeApp('win-browser')">&#8722;</button>
+      <button class="win-btn win-max" onclick="maximizeApp('win-browser')">&#9633;</button>
+      <button class="win-btn win-close" onclick="closeApp('win-browser')">&#10005;</button>
     </div>
   </div>
-
-  <!-- TODOS -->
-  <div class="window" id="win-todos">
-    <div class="win-head"><span class="title">todos</span><span class="close" onclick="closeApp('win-todos')">&#10005;</span></div>
-    <div class="win-body">
-      <div class="todo-list" id="todoList"></div>
-      <div class="todo-add">
-        <input type="text" id="todoInput" placeholder="add todo...">
-        <button class="btn-sm" id="todoAddBtn">+</button>
-      </div>
-      <div style="margin-top:8px;">
-        <button class="btn-sm" id="todoReportBtn">Report</button>
-      </div>
+  <div class="win-body" style="display:flex;align-items:center;justify-content:center;color:var(--text-dim);">
+    <div style="text-align:center;">
+      <div style="font-size:48px;margin-bottom:12px;">&#127760;</div>
+      <div>New Tab</div>
     </div>
   </div>
+</div>
 
-  <!-- AUDIT LOG -->
-  <div class="window" id="win-audit">
-    <div class="win-head"><span class="title">audit log</span><span class="close" onclick="closeApp('win-audit')">&#10005;</span></div>
-    <div class="win-body">
-      <div class="audit-list" id="auditList">no entries yet</div>
-      <div style="margin-top:8px;">
-        <button class="btn-sm" id="auditRefreshBtn">Refresh</button>
-        <button class="btn-sm" id="auditClearBtn">Clear</button>
-      </div>
+<!-- Files -->
+<div class="window" id="win-files">
+  <div class="win-header">
+    <div class="win-title">Files</div>
+    <div class="win-controls">
+      <button class="win-btn win-min" onclick="minimizeApp('win-files')">&#8722;</button>
+      <button class="win-btn win-max" onclick="maximizeApp('win-files')">&#9633;</button>
+      <button class="win-btn win-close" onclick="closeApp('win-files')">&#10005;</button>
     </div>
   </div>
-
-  <!-- ============ TASKBAR ============ -->
-  <div class="taskbar">
-    <div class="tb-left"></div>
-
-    <div class="tb-center">
-      <button class="lavos-search" id="lavosSearch" aria-label="LavOS Search" aria-expanded="false" onclick="toggleSearch()">
-        <span class="laptop"><span class="screen"></span><span class="base"></span></span>
-      </button>
-
-      <button class="terminal-btn" aria-label="Terminal" onclick="openApp('win-terminal')">
-        <svg class="terminal-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-          <rect class="terminal-window" x="3" y="4" width="26" height="24" rx="3"/>
-          <path class="terminal-window" d="M3 10h26"/>
-          <circle cx="7" cy="7" r="0.8" fill="currentColor"/>
-          <circle cx="10" cy="7" r="0.8" fill="currentColor" opacity="0.7"/>
-          <circle cx="13" cy="7" r="0.8" fill="currentColor" opacity="0.5"/>
-          <path class="terminal-arrow" d="M8 15l4 3-4 3"/>
-          <path class="terminal-cursor" d="M15 21h5"/>
-        </svg>
-      </button>
-
-      <button class="tb-icon-btn" aria-label="Files" onclick="openApp('win-files')">&#9638;</button>
-      <button class="tb-icon-btn" aria-label="Browser" onclick="openApp('win-coccoc')">&#9680;</button>
-      <button class="tb-icon-btn" aria-label="Settings" onclick="openApp('win-settings')">&#9881;</button>
-      <button class="tb-icon-btn" aria-label="Todos" onclick="openApp('win-todos')" style="position:relative;">
-        &#10003;
-        <span class="badge" id="todoBadge"></span>
-      </button>
+  <div class="win-body">
+    <div class="files-sidebar">
+      <div class="files-nav-item active">&#128193; Home</div>
+      <div class="files-nav-item">&#128194; Documents</div>
+      <div class="files-nav-item">&#128190; Downloads</div>
+      <div class="files-nav-item">&#128191; Music</div>
+      <div class="files-nav-item">&#127909; Videos</div>
+      <div class="files-nav-item">&#128193; Pictures</div>
+      <div class="files-nav-item">&#9881; .config</div>
     </div>
-
-    <div class="tb-right">
-      <div class="lavos-ai-wrap" style="position:relative;">
-        <button class="ai-toggle-btn" id="aiToggleBtn" aria-label="AI Panel" onclick="toggleAiPanel()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <rect x="4" y="5" width="16" height="11" rx="2"/>
-            <path d="M2.5 19h19"/>
-            <path d="M8 19l1-3h6l1 3"/>
-          </svg>
-        </button>
-        <span class="stream-dot" id="taskbarStreamDot"></span>
-      </div>
-
-      <div class="tb-time-wrap">
-        <div class="tb-time" id="tbTime" onclick="toggleCal()">
-          <span class="t-time" id="clockTime">--:--</span>
-          <span class="t-date" id="clockDate">--</span>
-        </div>
-      </div>
+    <div class="files-main">
+      <div class="files-item"><div class="files-icon">&#128193;</div><span>Documents</span></div>
+      <div class="files-item"><div class="files-icon">&#128193;</div><span>Downloads</span></div>
+      <div class="files-item"><div class="files-icon">&#128193;</div><span>Projects</span></div>
+      <div class="files-item"><div class="files-icon">&#128193;</div><span>.config</span></div>
+      <div class="files-item"><div class="files-icon">&#128196;</div><span>README.md</span></div>
+      <div class="files-item"><div class="files-icon">&#128196;</div><span>notes.txt</span></div>
     </div>
   </div>
+</div>
 
-  <!-- AI SLIDING PANEL -->
-  <div class="lavos-panel" id="lavosPanel">
-    <div class="panel-header">
-      <div class="panel-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <rect x="4" y="5" width="16" height="11" rx="2"/>
-          <path d="M2.5 19h19"/>
-          <path d="M8 19l1-3h6l1 3"/>
-        </svg>
-      </div>
-      <div class="panel-title" id="panelTitle">LavOS</div>
-      <button class="panel-close" onclick="toggleAiPanel()">&#10005;</button>
-    </div>
-    <div class="panel-content">
-      <div class="content-inner">
-        <div class="panel-chat" id="panelChat"></div>
-
-        <div class="items">
-          <div class="item" onclick="openApp('win-terminal'); toggleAiPanel();">
-            <div class="item-icon">&gt;</div>
-            <div class="item-text"><div class="item-name">Terminal</div><div class="item-desc">Open terminal</div></div>
-          </div>
-          <div class="item" onclick="openApp('win-files'); toggleAiPanel();">
-            <div class="item-icon">&#9678;</div>
-            <div class="item-text"><div class="item-name">Files</div><div class="item-desc">Browse files</div></div>
-          </div>
-          <div class="item" onclick="openApp('win-stream'); toggleAiPanel();">
-            <div class="item-icon">&#9673;</div>
-            <div class="item-text"><div class="item-name">Screen Stream</div><div class="item-desc">Capture screen</div></div>
-          </div>
-          <div class="item" onclick="openApp('win-todos'); toggleAiPanel();">
-            <div class="item-icon">&#10003;</div>
-            <div class="item-text"><div class="item-name">Todos</div><div class="item-desc">Manage tasks</div></div>
-          </div>
-          <div class="item" onclick="openApp('win-audit'); toggleAiPanel();">
-            <div class="item-icon">&#9783;</div>
-            <div class="item-text"><div class="item-name">Audit Log</div><div class="item-desc">Recent actions</div></div>
-          </div>
-          <div class="item" onclick="openApp('win-settings'); toggleAiPanel();">
-            <div class="item-icon">&#9881;</div>
-            <div class="item-text"><div class="item-name">Settings</div><div class="item-desc">Configure system</div></div>
-          </div>
-        </div>
-
-        <div class="panel-input">
-          <input type="text" id="panelInput" placeholder="type something...">
-          <button class="mic-btn" id="micBtn" onclick="toggleMic()">&#127908;</button>
-        </div>
-
-        <div class="panel-footer">
-          <span><span class="dot" id="footEngine"></span>engine</span>
-          <span><span class="dot" id="footVoice"></span>voice</span>
-          <span><span class="dot" id="footStream"></span>stream</span>
-        </div>
-      </div>
+<!-- Settings -->
+<div class="window" id="win-settings">
+  <div class="win-header">
+    <div class="win-title">Settings</div>
+    <div class="win-controls">
+      <button class="win-btn win-min" onclick="minimizeApp('win-settings')">&#8722;</button>
+      <button class="win-btn win-max" onclick="maximizeApp('win-settings')">&#9633;</button>
+      <button class="win-btn win-close" onclick="closeApp('win-settings')">&#10005;</button>
     </div>
   </div>
-
-  <!-- CALENDAR / TIME PANEL -->
-  <div class="cal-panel" id="calPanel">
-    <div class="cal-head">
-      <div class="cal-time" id="calTime">--:--</div>
-      <div class="cal-date" id="calDate">--</div>
+  <div class="win-body settings-body">
+    <div class="settings-sidebar">
+      <div class="settings-nav active" data-tab="general" onclick="switchSettingsTab('general',this)">&#9881; General</div>
+      <div class="settings-nav" data-tab="appearance" onclick="switchSettingsTab('appearance',this)">&#127912; Appearance</div>
+      <div class="settings-nav" data-tab="ai" onclick="switchSettingsTab('ai',this)">&#129302; AI Engine</div>
+      <div class="settings-nav" data-tab="voice" onclick="switchSettingsTab('voice',this)">&#127908; Voice</div>
+      <div class="settings-nav" data-tab="screen" onclick="switchSettingsTab('screen',this)">&#128187; Screen</div>
+      <div class="settings-nav" data-tab="privacy" onclick="switchSettingsTab('privacy',this)">&#128274; Privacy</div>
+      <div class="settings-nav" data-tab="network" onclick="switchSettingsTab('network',this)">&#128246; Network</div>
+      <div class="settings-nav" data-tab="power" onclick="switchSettingsTab('power',this)">&#128267; Power</div>
+      <div class="settings-nav" data-tab="about" onclick="switchSettingsTab('about',this)">&#9432; About</div>
     </div>
-    <div class="cal-grid" id="calGrid"></div>
-    <div class="cal-notif">no new notifications</div>
+    <div class="settings-content" id="settingsContent">
+      <!-- filled by JS -->
+    </div>
   </div>
+</div>
+
+<!-- Screen Stream -->
+<div class="window" id="win-stream">
+  <div class="win-header">
+    <div class="win-title">Screen Stream</div>
+    <div class="win-controls">
+      <button class="win-btn win-min" onclick="minimizeApp('win-stream')">&#8722;</button>
+      <button class="win-btn win-max" onclick="maximizeApp('win-stream')">&#9633;</button>
+      <button class="win-btn win-close" onclick="closeApp('win-stream')">&#10005;</button>
+    </div>
+  </div>
+  <div class="win-body">
+    <div class="stream-preview" id="streamPreview">
+      <span>Stream inactive</span>
+    </div>
+    <div class="stream-controls">
+      <button class="gnome-btn primary" id="streamStartBtn" onclick="startStream()">Start Capture</button>
+      <button class="gnome-btn" id="streamStopBtn" onclick="stopStream()" disabled>Stop</button>
+      <button class="gnome-btn" id="streamAnalyzeBtn" onclick="analyzeStream()" disabled>Analyze</button>
+    </div>
+    <div class="stream-status" id="streamStatus">stopped</div>
+  </div>
+</div>
+
+<!-- Todos -->
+<div class="window" id="win-todos">
+  <div class="win-header">
+    <div class="win-title">Todos</div>
+    <div class="win-controls">
+      <button class="win-btn win-min" onclick="minimizeApp('win-todos')">&#8722;</button>
+      <button class="win-btn win-max" onclick="maximizeApp('win-todos')">&#9633;</button>
+      <button class="win-btn win-close" onclick="closeApp('win-todos')">&#10005;</button>
+    </div>
+  </div>
+  <div class="win-body">
+    <div class="todo-input-row">
+      <input type="text" id="todoInput" placeholder="New todo..." class="gnome-input">
+      <button class="gnome-btn primary" onclick="addTodoFromInput()">Add</button>
+    </div>
+    <div class="todo-list" id="todoList"></div>
+    <div style="margin-top:8px;">
+      <button class="gnome-btn" onclick="requestTodoReport()">Generate Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audit Log -->
+<div class="window" id="win-audit">
+  <div class="win-header">
+    <div class="win-title">Audit Log</div>
+    <div class="win-controls">
+      <button class="win-btn win-min" onclick="minimizeApp('win-audit')">&#8722;</button>
+      <button class="win-btn win-max" onclick="maximizeApp('win-audit')">&#9633;</button>
+      <button class="win-btn win-close" onclick="closeApp('win-audit')">&#10005;</button>
+    </div>
+  </div>
+  <div class="win-body">
+    <div class="audit-list" id="auditList">
+      <div style="color:var(--text-dim);padding:20px;text-align:center;">No entries yet</div>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:6px;">
+      <button class="gnome-btn" onclick="fetchAudit()">Refresh</button>
+      <button class="gnome-btn danger" onclick="clearAudit()">Clear</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Panel (slides from right) -->
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-panel-header">
+    <div class="ai-panel-icon">&#129302;</div>
+    <div class="ai-panel-title" id="aiPanelTitle">Assistant</div>
+    <button class="ai-panel-close" onclick="toggleAiPanel()">&#10005;</button>
+  </div>
+  <div class="ai-panel-messages" id="aiPanelMessages"></div>
+  <div class="ai-panel-input">
+    <input type="text" id="aiInput" placeholder="Ask something..." class="gnome-input" style="flex:1;">
+    <button class="ai-mic-btn" id="micBtn" onclick="toggleMic()">&#127908;</button>
+    <button class="gnome-btn primary" onclick="sendAiMessage()">Send</button>
+  </div>
+  <div class="ai-panel-footer">
+    <span><span class="status-dot" id="footEngine"></span> Engine</span>
+    <span><span class="status-dot" id="footVoice"></span> Voice</span>
+    <span><span class="status-dot" id="footStream"></span> Stream</span>
+  </div>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="app.js"></script>
