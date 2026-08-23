@@ -274,7 +274,8 @@ html, body {
 }
 .desktop-bg {
   width: 100%; height: 100%;
-  background: linear-gradient(135deg, #1a1b26 0%, #24283b 50%, #1a1b26 100%);
+  background: url('wallpaper.svg') center/cover no-repeat;
+  background-color: #0c1a30;
 }
 
 /* ===== WINDOWS ===== */
