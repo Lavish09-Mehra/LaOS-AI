@@ -412,6 +412,28 @@ html, body {
   background: url('wallpaper.jpg') center/cover no-repeat;
   background-color: #1a3a2a;
 }
+.desktop-icons {
+  position: absolute; top: 20px; left: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.desktop-icon {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 8px; border-radius: 8px; cursor: pointer;
+  width: 72px; transition: all .2s var(--ease);
+}
+.desktop-icon:hover { background: rgba(255,255,255,.1); }
+.desktop-icon:active { transform: scale(0.92); }
+.desktop-icon-img {
+  width: 44px; height: 44px; display: grid; place-items: center;
+  background: rgba(255,255,255,.12); backdrop-filter: blur(8px);
+  border-radius: 10px; border: 1px solid rgba(255,255,255,.15);
+  color: #fff;
+}
+.desktop-icon-img svg { width: 24px; height: 24px; }
+.desktop-icon-label {
+  font-size: 11px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.7);
+  text-align: center; font-weight: 500;
+}
 
 /* ===== WINDOWS ===== */
 .window {
