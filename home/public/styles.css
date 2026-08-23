@@ -419,21 +419,63 @@ html, body {
 .desktop-icon {
   display: flex; flex-direction: column; align-items: center;
   gap: 4px; padding: 8px; border-radius: 8px; cursor: pointer;
-  width: 72px; transition: all .2s var(--ease);
+  width: 80px; transition: all .2s var(--ease);
 }
 .desktop-icon:hover { background: rgba(255,255,255,.1); }
 .desktop-icon:active { transform: scale(0.92); }
-.desktop-icon-img {
-  width: 44px; height: 44px; display: grid; place-items: center;
-  background: rgba(255,255,255,.12); backdrop-filter: blur(8px);
-  border-radius: 10px; border: 1px solid rgba(255,255,255,.15);
-  color: #fff;
-}
-.desktop-icon-img svg { width: 24px; height: 24px; }
 .desktop-icon-label {
   font-size: 11px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.7);
   text-align: center; font-weight: 500;
 }
+/* Linux Folder Icon */
+.folder {
+  position: relative; width: 64px; height: 64px;
+}
+.folder-back {
+  position: absolute; left: 3px; top: 9px;
+  width: 58px; height: 48px;
+  background: #64a9f5; border-radius: 3px 11px 9px 9px;
+}
+.folder-tab {
+  position: absolute; left: 3px; top: 5px;
+  width: 25px; height: 13px;
+  background: #64a9f5; border-radius: 7px 7px 0 0;
+}
+.folder .paper {
+  position: absolute; left: 9px; top: 18px;
+  width: 49px; height: 25px;
+  background: #e9edf1; border-radius: 3px 3px 5px 5px;
+}
+.folder-front {
+  position: absolute; left: 3px; bottom: 6px;
+  width: 58px; height: 36px;
+  background: #86c8f5; border-radius: 9px;
+}
+.folder-front::before {
+  content: ""; position: absolute; right: 0; top: -10px;
+  width: 25px; height: 17px;
+  background: #86c8f5; border-radius: 9px 9px 0 0;
+}
+/* File Icon */
+.file-icon { position: relative; width: 64px; height: 64px; }
+.file-page {
+  position: absolute; left: 10px; top: 5px;
+  width: 44px; height: 54px;
+  background: #e9edf1; border-radius: 5px;
+}
+.file-fold {
+  position: absolute; right: 0; top: 0;
+  width: 15px; height: 15px;
+  background: #b9c1c9; clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+.file-line {
+  position: absolute; left: 8px;
+  width: 28px; height: 3px;
+  background: #8da0b0; border-radius: 2px;
+}
+.file-line.line-1 { top: 24px; }
+.file-line.line-2 { top: 32px; }
+.file-line.line-3 { top: 40px; }
 
 /* ===== WINDOWS ===== */
 .window {
