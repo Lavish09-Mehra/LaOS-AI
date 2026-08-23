@@ -57,7 +57,7 @@ function minimizeApp(id) {
   windowCount = Math.max(0, windowCount - 1);
   updateDockIndicator(id, false);
 }
-function maximizeApp(id) {
+function toggleFullScreen(id) {
   var win = document.getElementById(id);
   if (win.dataset.maximized === 'true') {
     win.style.top = win.dataset.prevTop;
@@ -154,12 +154,12 @@ document.addEventListener('mousemove', function(e) {
 });
 document.addEventListener('mouseup', function() { dragState = null; });
 
-// Double-click header to minimize
+// Double-click header to toggle full screen
 document.addEventListener('dblclick', function(e) {
   var header = e.target.closest('.win-header');
   if (!header || e.target.closest('.win-controls')) return;
   var win = header.closest('.window');
-  if (win) minimizeApp(win.id);
+  if (win) toggleFullScreen(win.id);
 });
 
 // Click window to focus

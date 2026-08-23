@@ -314,16 +314,27 @@ html, body {
 }
 .win-header:hover { background: var(--surface3); }
 .win-title { font-size: 12.5px; font-weight: 600; color: var(--text); }
-.win-controls { display: flex; gap: 4px; }
+.win-controls { display: flex; gap: 7px; }
 .win-btn {
-  width: 24px; height: 24px; border: none; background: transparent;
-  color: var(--text-dim); border-radius: 6px; cursor: pointer;
-  display: grid; place-items: center; font-size: 14px;
-  transition: all .2s var(--ease);
+  width: 13px; height: 13px; border: none; border-radius: 50%;
+  cursor: pointer; display: grid; place-items: center;
+  transition: all .2s var(--ease); position: relative;
+  opacity: 0.85;
 }
-.win-btn:hover { background: var(--surface3); color: var(--text); transform: scale(1.1); }
+.win-btn:hover { opacity: 1; transform: scale(1.15); }
 .win-btn:active { transform: scale(0.85); }
-.win-close:hover { background: var(--red); color: #fff; }
+.win-close { background: #ff5f57; }
+.win-close:hover { background: #ff3b30; }
+.win-close::after { content: '✕'; font-size: 8px; color: #4a0002; position: absolute; opacity: 0; transition: opacity .15s; }
+.win-close:hover::after { opacity: 1; }
+.win-min { background: #febc2e; }
+.win-min:hover { background: #f5a623; }
+.win-min::after { content: '−'; font-size: 10px; color: #5a3e00; position: absolute; opacity: 0; transition: opacity .15s; }
+.win-min:hover::after { opacity: 1; }
+.win-max { background: #28c840; }
+.win-max:hover { background: #1db954; }
+.win-max::after { content: '⤢'; font-size: 9px; color: #0a4a00; position: absolute; opacity: 0; transition: opacity .15s; }
+.win-max:hover::after { opacity: 1; }
 .win-body { flex: 1; overflow: auto; padding: 14px; }
 
 /* Terminal */
