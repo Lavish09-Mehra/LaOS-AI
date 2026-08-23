@@ -1,10 +1,38 @@
-﻿const socket = io();
+﻿// ===== BOOT ANIMATION =====
+(function() {
+  var bar = document.getElementById('bootBar');
+  var status = document.getElementById('bootStatus');
+  var screen = document.getElementById('bootScreen');
+  var msgs = ['Initializing kernel...', 'Loading modules...', 'Starting services...', 'Preparing desktop...', 'Ready'];
+  var pct = [20, 45, 70, 90, 100];
+  var i = 0;
+  function step() {
+    if (i >= msgs.length) {
+      setTimeout(function() { screen.classList.add('done'); }, 400);
+      return;
+    }
+    bar.style.width = pct[i] + '%';
+    status.textContent = msgs[i];
+    i++;
+    setTimeout(step, 350 + Math.random() * 200);
+  }
+  setTimeout(step, 300);
+})();
+
+const socket = io();
 let sessionId = null;
 let isListening = false;
 let recognition = null;
 let settings = {};
 let streamInterval = null;
 let dragState = null;
+
+// ===== FOLDER ANIMATION =====
+function animateFolderOpen(el) {
+  var folder = el.querySelector('.folder');
+  folder.classList.add('opening');
+  setTimeout(function() { folder.classList.remove('opening'); }, 600);
+}
 
 // ===== WINDOW MANAGEMENT =====
 var openWindows = {};

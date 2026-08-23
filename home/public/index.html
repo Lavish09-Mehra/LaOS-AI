@@ -8,6 +8,20 @@
 </head>
 <body>
 
+<!-- ===== BOOT SCREEN ===== -->
+<div class="boot-screen" id="bootScreen">
+  <div class="boot-logo">
+    <svg viewBox="0 0 120 120" width="80" height="80">
+      <circle cx="60" cy="60" r="56" fill="none" stroke="#7ac2f5" stroke-width="2" opacity="0.3"/>
+      <circle cx="60" cy="60" r="42" fill="none" stroke="#7ac2f5" stroke-width="1.5" opacity="0.5" class="boot-ring"/>
+      <text x="60" y="72" text-anchor="middle" font-size="38" font-weight="bold" fill="#7ac2f5" font-family="Arial">L</text>
+    </svg>
+  </div>
+  <div class="boot-text">LavOS</div>
+  <div class="boot-progress"><div class="boot-bar" id="bootBar"></div></div>
+  <div class="boot-status" id="bootStatus">Starting up...</div>
+</div>
+
 <!-- ===== TOP BAR ===== -->
 <div class="topbar">
   <div class="topbar-left">
@@ -181,7 +195,7 @@
 <div class="desktop" id="desktop">
   <div class="desktop-bg"></div>
   <div class="desktop-icons">
-    <div class="desktop-icon" ondblclick="openApp('win-files')">
+    <div class="desktop-icon" ondblclick="openApp('win-files'); animateFolderOpen(this)">
       <div class="folder">
         <div class="folder-back"></div>
         <div class="folder-tab"></div>
