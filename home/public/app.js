@@ -8,6 +8,7 @@ let dragState = null;
 
 // ===== WINDOW MANAGEMENT =====
 var openWindows = {};
+var minimizedWindows = {};
 var windowPositions = {
   'win-terminal': { top: 80, left: 120 },
   'win-files': { top: 100, left: 200 },
@@ -19,6 +20,7 @@ var windowPositions = {
   'win-calendar': { top: 60, left: 160 }
 };
 var windowCount = 0;
+var zIndexCounter = 100;
 
 function openApp(id) {
   var win = document.getElementById(id);
@@ -32,9 +34,12 @@ function openApp(id) {
     win.style.top = pos.top + 'px';
     win.style.left = pos.left + 'px';
   }
+  win.style.display = '';
   win.classList.add('open', 'focused');
   openWindows[id] = true;
+  minimizedWindows[id] = false;
   windowCount++;
+  focusWindow(id);
   closeOverview();
   closeTray();
   updateDockIndicator(id, true);
@@ -43,19 +48,21 @@ function closeApp(id) {
   var win = document.getElementById(id);
   win.classList.add('closing');
   win.classList.remove('focused');
-  setTimeout(function() { win.classList.remove('open', 'closing'); }, 200);
+  setTimeout(function() { win.classList.remove('open', 'closing'); win.style.display = 'none'; }, 200);
   openWindows[id] = false;
+  minimizedWindows[id] = false;
   windowCount = Math.max(0, windowCount - 1);
-  updateDockIndicator(id, false);
+  updateDockIndicator(id, false, false);
 }
 function minimizeApp(id) {
   var win = document.getElementById(id);
   win.classList.add('closing');
   win.classList.remove('focused');
-  setTimeout(function() { win.classList.remove('open', 'closing'); }, 200);
+  setTimeout(function() { win.classList.remove('open', 'closing'); win.style.display = 'none'; }, 200);
   openWindows[id] = false;
+  minimizedWindows[id] = true;
   windowCount = Math.max(0, windowCount - 1);
-  updateDockIndicator(id, false);
+  updateDockIndicator(id, false, true);
 }
 function toggleFullScreen(id) {
   var win = document.getElementById(id);
@@ -81,27 +88,29 @@ function showDesktop() {
   document.querySelectorAll('.window.open').forEach(function(w) {
     w.classList.add('closing');
     w.classList.remove('focused');
-    setTimeout(function() { w.classList.remove('open', 'closing'); }, 200);
+    setTimeout(function() { w.classList.remove('open', 'closing'); w.style.display = 'none'; }, 200);
     openWindows[w.id] = false;
+    minimizedWindows[w.id] = false;
   });
   windowCount = 0;
   closeOverview();
   updateAllDockIndicators();
 }
-function updateDockIndicator(id, open) {
+function updateDockIndicator(id, open, minimized) {
   var app = id.replace('win-', '');
   var item = document.querySelector('.dock-item[data-app="' + app + '"]');
-  if (item) {
-    if (open) item.classList.add('open');
-    else item.classList.remove('open');
-  }
+  if (!item) return;
+  item.classList.remove('open', 'minimized');
+  if (open) item.classList.add('open');
+  else if (minimized) item.classList.add('minimized');
 }
 function updateAllDockIndicators() {
   document.querySelectorAll('.dock-item').forEach(function(item) {
     var app = item.dataset.app;
     var winId = 'win-' + app;
+    item.classList.remove('open', 'minimized');
     if (openWindows[winId]) item.classList.add('open');
-    else item.classList.remove('open');
+    else if (minimizedWindows[winId]) item.classList.add('minimized');
   });
 }
 function dockClick(app) {
@@ -112,7 +121,10 @@ function dockClick(app) {
 }
 function focusWindow(id) {
   document.querySelectorAll('.window').forEach(function(w) { w.classList.remove('focused'); });
-  document.getElementById(id).classList.add('focused');
+  var win = document.getElementById(id);
+  zIndexCounter++;
+  win.style.zIndex = zIndexCounter;
+  win.classList.add('focused');
 }
 
 // ===== DYNAMIC ISLAND =====
@@ -431,12 +443,24 @@ setInterval(tick, 1000); tick();
 function browserGo(url) {
   var frame = document.getElementById('browserFrame');
   var newtab = document.getElementById('browserNewtab');
+  var errOverlay = document.getElementById('browserError');
   var urlBar = document.getElementById('browserUrl');
+  errOverlay.style.display = 'none';
   frame.src = url;
   frame.style.display = 'block';
   newtab.style.display = 'none';
   urlBar.value = url;
   document.querySelector('.browser-tab span').textContent = url.replace('https://','').replace('http://','').split('/')[0];
+  frame.onload = function() {
+    setTimeout(function() {
+      try { var loc = frame.contentWindow.location.href; }
+      catch(e) {
+        errOverlay.style.display = 'flex';
+        document.getElementById('browserErrorUrl').textContent = url;
+        frame.style.display = 'none';
+      }
+    }, 500);
+  };
 }
 function browserNavigate() {
   var url = document.getElementById('browserUrl').value.trim();
@@ -453,7 +477,7 @@ function browserNavigate() {
 function browserSearchWeb() {
   var q = document.getElementById('browserSearch').value.trim();
   if (!q) return;
-  browserGo('https://www.google.com/search?igu=1');
+  browserGo('https://duckduckgo.com/?q=' + encodeURIComponent(q));
 }
 function browserBack() { document.getElementById('browserFrame').contentWindow.history.back(); }
 function browserForward() { document.getElementById('browserFrame').contentWindow.history.forward(); }

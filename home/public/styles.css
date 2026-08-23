@@ -386,6 +386,12 @@ html, body {
   transition: height .3s var(--ease-bounce);
 }
 .dock-item.open::after { height: 16px; }
+.dock-item.minimized { color: var(--accent); opacity: .7; }
+.dock-item.minimized::after {
+  content: ''; position: absolute; left: -3px; bottom: 5px;
+  width: 4px; height: 4px; background: var(--accent);
+  border-radius: 50%; animation: pulse 2s ease infinite;
+}
 .dock-sep {
   width: 24px; height: 0; border: none;
   border-top: 1px solid var(--border); margin: 0;
@@ -515,6 +521,15 @@ html, body {
 }
 .browser-shortcut span { font-size: 10px; color: var(--text-dim); }
 .browser-frame { width: 100%; height: 100%; border: none; background: #fff; }
+.browser-error {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  background: var(--surface);
+}
+.browser-error-icon { font-size: 48px; opacity: .4; }
+.browser-error-title { font-size: 16px; font-weight: 600; color: var(--text); }
+.browser-error-url { font-size: 11px; color: var(--text-dim); max-width: 400px; word-break: break-all; }
+.browser-error-hint { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
 #win-settings { width: 560px; height: 420px; top: 70px; left: 180px; }
 #win-notes { width: 560px; height: 400px; top: 100px; left: 200px; }
 #win-audit { width: 480px; height: 340px; top: 110px; left: 260px; }

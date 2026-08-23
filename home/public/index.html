@@ -274,6 +274,13 @@
       </div>
     </div>
     <iframe id="browserFrame" class="browser-frame" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" style="display:none;"></iframe>
+    <div class="browser-error" id="browserError" style="display:none;">
+      <div class="browser-error-icon">&#128279;</div>
+      <div class="browser-error-title">Site can't be embedded</div>
+      <div class="browser-error-url" id="browserErrorUrl"></div>
+      <div class="browser-error-hint">This site blocks iframe embedding for security.</div>
+      <button class="gnome-btn" onclick="browserHome()">Back to Home</button>
+    </div>
   </div>
 </div>
 
