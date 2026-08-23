@@ -1,22 +1,85 @@
 ﻿// ===== BOOT ANIMATION =====
 (function() {
-  var bar = document.getElementById('bootBar');
-  var status = document.getElementById('bootStatus');
-  var screen = document.getElementById('bootScreen');
-  var msgs = ['Initializing kernel...', 'Loading modules...', 'Starting services...', 'Preparing desktop...', 'Ready'];
-  var pct = [20, 45, 70, 90, 100];
-  var i = 0;
-  function step() {
-    if (i >= msgs.length) {
-      setTimeout(function() { screen.classList.add('done'); }, 400);
-      return;
-    }
-    bar.style.width = pct[i] + '%';
-    status.textContent = msgs[i];
-    i++;
-    setTimeout(step, 350 + Math.random() * 200);
+  var canvas = document.getElementById('particles');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var w, h;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
   }
-  setTimeout(step, 300);
+  resize();
+  window.addEventListener('resize', resize);
+
+  function Particle() {
+    this.x = Math.random() * w;
+    this.y = Math.random() * h;
+    this.size = Math.random() * 2 + 0.5;
+    this.speedX = (Math.random() - 0.5) * 0.3;
+    this.speedY = (Math.random() - 0.5) * 0.3;
+    this.life = Math.random() * 100 + 50;
+    this.maxLife = this.life;
+    this.hue = Math.random() > 0.5 ? 200 : 190;
+  }
+  Particle.prototype.update = function() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    this.life--;
+    if (this.life <= 0 || this.x < 0 || this.x > w || this.y < 0 || this.y > h) {
+      this.x = Math.random() * w;
+      this.y = Math.random() * h;
+      this.life = Math.random() * 100 + 50;
+      this.maxLife = this.life;
+    }
+  };
+  Particle.prototype.draw = function() {
+    var alpha = (this.life / this.maxLife) * 0.6;
+    ctx.fillStyle = 'hsla(' + this.hue + ', 80%, 70%, ' + alpha + ')';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  };
+
+  for (var i = 0; i < 80; i++) particles.push(new Particle());
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(function(p) { p.update(); p.draw(); });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // Boot stages
+  var stages = [
+    { id: 'st1', delay: 2500 },
+    { id: 'st2', delay: 3500 },
+    { id: 'st3', delay: 4800 },
+    { id: 'st4', delay: 6200 }
+  ];
+  stages.forEach(function(s) {
+    setTimeout(function() {
+      var el = document.getElementById(s.id);
+      if (el) el.classList.add('active');
+    }, s.delay);
+  });
+
+  // Complete + fade out
+  setTimeout(function() {
+    var container = document.getElementById('boot-container');
+    if (container) {
+      container.classList.add('complete');
+      setTimeout(function() {
+        container.classList.add('fade-out');
+        container.classList.add('done');
+        var ready = document.getElementById('readyText');
+        if (ready) {
+          ready.style.animation = 'readyPulse 2s ease-in-out infinite, fadeUp 1s ease forwards';
+        }
+      }, 800);
+    }
+  }, 6500);
 })();
 
 const socket = io();

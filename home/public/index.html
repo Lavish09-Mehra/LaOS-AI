@@ -9,17 +9,31 @@
 <body>
 
 <!-- ===== BOOT SCREEN ===== -->
-<div class="boot-screen" id="bootScreen">
-  <div class="boot-logo">
-    <svg viewBox="0 0 120 120" width="80" height="80">
-      <circle cx="60" cy="60" r="56" fill="none" stroke="#7ac2f5" stroke-width="2" opacity="0.3"/>
-      <circle cx="60" cy="60" r="42" fill="none" stroke="#7ac2f5" stroke-width="1.5" opacity="0.5" class="boot-ring"/>
-      <text x="60" y="72" text-anchor="middle" font-size="38" font-weight="bold" fill="#7ac2f5" font-family="Arial">L</text>
-    </svg>
+<div id="boot-container">
+  <canvas id="particles"></canvas>
+  <div class="scanlines"></div>
+
+  <div class="core-container">
+    <div class="ring-outer"></div>
+    <div class="core-orb"></div>
   </div>
-  <div class="boot-text">LavOS</div>
-  <div class="boot-progress"><div class="boot-bar" id="bootBar"></div></div>
-  <div class="boot-status" id="bootStatus">Starting up...</div>
+
+  <div class="logo-text">LAVOS</div>
+  <div class="logo-sub">LIGHTWEIGHT ADAPTIVE VIRTUAL OPERATING SYSTEM</div>
+
+  <div class="progress-container">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="boot-status">
+      <span class="status-text" id="st1">KERNEL</span>
+      <span class="status-text" id="st2">MEMORY</span>
+      <span class="status-text" id="st3">SERVICES</span>
+      <span class="status-text" id="st4">READY</span>
+    </div>
+  </div>
+
+  <div class="ready-text" id="readyText">SYSTEM READY</div>
 </div>
 
 <!-- ===== TOP BAR ===== -->
