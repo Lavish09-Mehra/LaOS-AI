@@ -59,13 +59,56 @@
   </div>
 </div>
 
-<!-- ===== CALENDAR POPUP ===== -->
-<div class="cal-popup" id="calPopup">
-  <div class="cal-header">
-    <div class="cal-big-time" id="calBigTime">--:--</div>
-    <div class="cal-big-date" id="calBigDate">--</div>
+<!-- ===== CALENDAR WINDOW ===== -->
+<div class="window cal-window" id="win-calendar">
+  <div class="win-header">
+    <div class="win-title">Calendar</div>
+    <div class="win-controls">
+      <button class="win-btn win-close" onclick="closeApp('win-calendar')"></button>
+      <button class="win-btn win-min" onclick="minimizeApp('win-calendar')"></button>
+      <button class="win-btn win-max" onclick="toggleFullScreen('win-calendar')"></button>
+    </div>
   </div>
-  <div class="cal-grid" id="calGrid"></div>
+  <div class="cal-body">
+    <div class="cal-sidebar">
+      <div class="cal-brand">Almanac</div>
+      <div class="mini-cal">
+        <div class="mini-head">
+          <span id="miniLabel">—</span>
+          <div class="mini-nav">
+            <button id="miniPrev">&#8249;</button>
+            <button id="miniNext">&#8250;</button>
+          </div>
+        </div>
+        <div class="mini-grid" id="miniGrid"></div>
+      </div>
+      <div class="cal-nav-section">
+        <div class="cal-nav-label">Calendars</div>
+        <div class="cal-nav-item active"><span class="cal-swatch" style="background:var(--accent)"></span>Personal</div>
+        <div class="cal-nav-item"><span class="cal-swatch" style="background:#7C93A8"></span>Work</div>
+        <div class="cal-nav-item"><span class="cal-swatch" style="background:#A87C8F"></span>Deadlines</div>
+      </div>
+    </div>
+    <div class="cal-main">
+      <div class="cal-toolbar">
+        <div class="cal-toolbar-left">
+          <span class="cal-month" id="calMonthLabel">—</span>
+          <span class="cal-year" id="calYearLabel">—</span>
+        </div>
+        <div class="cal-toolbar-right">
+          <button class="cal-today-pill" id="calTodayBtn">Today</button>
+          <button class="cal-icon-btn" id="calPrevBtn">&#8249;</button>
+          <button class="cal-icon-btn" id="calNextBtn">&#8250;</button>
+        </div>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="cal-weekdays">
+          <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+        </div>
+        <div class="cal-days" id="calDaysGrid"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ===== ACTIVITIES OVERVIEW ===== -->
@@ -82,6 +125,9 @@
   <div class="dock-pill" id="dockPill">
     <button class="dock-item" data-app="desktop" title="Desktop" onclick="dockClick('desktop')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+    </button>
+    <button class="dock-item" data-app="calendar" title="Calendar" onclick="dockClick('calendar')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg>
     </button>
     <button class="dock-item" data-app="terminal" title="Terminal" onclick="dockClick('terminal')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 9l4 3-4 3"/><path d="M12 15h6"/></svg>

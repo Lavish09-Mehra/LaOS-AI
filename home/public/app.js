@@ -15,7 +15,8 @@ var windowPositions = {
   'win-settings': { top: 70, left: 180 },
   'win-notes': { top: 100, left: 200 },
   'win-audit': { top: 110, left: 260 },
-  'win-stream': { top: 90, left: 220 }
+  'win-stream': { top: 90, left: 220 },
+  'win-calendar': { top: 60, left: 160 }
 };
 var windowCount = 0;
 
@@ -36,7 +37,6 @@ function openApp(id) {
   windowCount++;
   closeOverview();
   closeTray();
-  closeCal();
   updateDockIndicator(id, true);
 }
 function closeApp(id) {
@@ -209,7 +209,6 @@ document.getElementById('overview').addEventListener('click', function(e) {
 
 // ===== TRAY =====
 function openTray() {
-  closeCal();
   document.getElementById('trayDropdown').classList.add('open');
 }
 function closeTray() {
@@ -236,70 +235,119 @@ document.getElementById('systemTray').addEventListener('click', function(e) {
 });
 
 // ===== CALENDAR =====
-var calHovering = false;
-function openCal() {
-  calHovering = true;
-  closeTray();
-  document.getElementById('calPopup').classList.add('open');
+var calMonthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+var calToday = new Date();
+var calViewYear = calToday.getFullYear();
+var calViewMonth = calToday.getMonth();
+var calMiniYear = calViewYear;
+var calMiniMonth = calViewMonth;
+var calSelectedDate = new Date();
+
+function renderCalMain() {
+  document.getElementById('calMonthLabel').textContent = calMonthNames[calViewMonth];
+  document.getElementById('calYearLabel').textContent = calViewYear;
+  var grid = document.getElementById('calDaysGrid');
+  grid.innerHTML = '';
+  var firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
+  var daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+  var daysInPrev = new Date(calViewYear, calViewMonth, 0).getDate();
+  var totalCells = 42, cellIndex = 0;
+  for (var i = firstDay - 1; i >= 0; i--) { addCalCell(grid, daysInPrev - i, true, false, false); cellIndex++; }
+  for (var d = 1; d <= daysInMonth; d++) {
+    var isToday = d === calToday.getDate() && calViewMonth === calToday.getMonth() && calViewYear === calToday.getFullYear();
+    var isSel = calSelectedDate && d === calSelectedDate.getDate() && calViewMonth === calSelectedDate.getMonth() && calViewYear === calSelectedDate.getFullYear();
+    addCalCell(grid, d, false, isToday, isSel);
+    cellIndex++;
+  }
+  var trailDay = 1;
+  while (cellIndex < totalCells) { addCalCell(grid, trailDay, true, false, false); trailDay++; cellIndex++; }
 }
-function closeCal() {
-  var el = document.getElementById('calPopup');
-  el.style.animation = 'fadeOut .15s ease forwards';
-  setTimeout(function() { el.classList.remove('open'); el.style.animation = ''; }, 150);
+function addCalCell(grid, num, muted, isToday, isSel) {
+  var el = document.createElement('div');
+  el.className = 'cal-day' + (muted ? ' muted' : '') + (isToday ? ' today' : '') + (isSel ? ' selected' : '');
+  var numEl = document.createElement('div');
+  numEl.className = 'cal-day-num';
+  numEl.textContent = num;
+  el.appendChild(numEl);
+  if (!muted) {
+    el.addEventListener('click', (function(d) {
+      return function() {
+        calSelectedDate = new Date(calViewYear, calViewMonth, d);
+        renderCalMain();
+      };
+    })(num));
+  }
+  grid.appendChild(el);
 }
-document.getElementById('clockBtn').addEventListener('mouseenter', function() {
-  openCal();
+function renderCalMini() {
+  document.getElementById('miniLabel').textContent = calMonthNames[calMiniMonth].slice(0, 3).toUpperCase() + ' ' + calMiniYear;
+  var grid = document.getElementById('miniGrid');
+  grid.innerHTML = '';
+  var wk = ['S','M','T','W','T','F','S'];
+  wk.forEach(function(w) { var el = document.createElement('div'); el.className = 'mw'; el.textContent = w; grid.appendChild(el); });
+  var firstDay = new Date(calMiniYear, calMiniMonth, 1).getDay();
+  var daysInMonth = new Date(calMiniYear, calMiniMonth + 1, 0).getDate();
+  var daysInPrev = new Date(calMiniYear, calMiniMonth, 0).getDate();
+  for (var i = firstDay - 1; i >= 0; i--) { var el = document.createElement('div'); el.className = 'md muted'; el.textContent = daysInPrev - i; grid.appendChild(el); }
+  for (var d = 1; d <= daysInMonth; d++) {
+    var el = document.createElement('div');
+    var isToday = d === calToday.getDate() && calMiniMonth === calToday.getMonth() && calMiniYear === calToday.getFullYear();
+    el.className = 'md' + (isToday ? ' today' : '');
+    el.textContent = d;
+    el.addEventListener('click', (function(d) {
+      return function() {
+        calViewYear = calMiniYear; calViewMonth = calMiniMonth;
+        calSelectedDate = new Date(calMiniYear, calMiniMonth, d);
+        renderCalMain(); renderCalMini();
+      };
+    })(d));
+    grid.appendChild(el);
+  }
+  var totalCells = firstDay + daysInMonth;
+  var trailing = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (var t = 1; t <= trailing; t++) { var el = document.createElement('div'); el.className = 'md muted'; el.textContent = t; grid.appendChild(el); }
+}
+document.getElementById('calPrevBtn').addEventListener('click', function() {
+  calViewMonth--; if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+  calMiniMonth = calViewMonth; calMiniYear = calViewYear;
+  renderCalMain(); renderCalMini();
 });
-document.getElementById('clockBtn').addEventListener('mouseleave', function() {
-  setTimeout(function() {
-    if (!calHovering) closeCal();
-  }, 300);
+document.getElementById('calNextBtn').addEventListener('click', function() {
+  calViewMonth++; if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+  calMiniMonth = calViewMonth; calMiniYear = calViewYear;
+  renderCalMain(); renderCalMini();
 });
-document.getElementById('calPopup').addEventListener('mouseenter', function() {
-  calHovering = true;
+document.getElementById('miniPrev').addEventListener('click', function() {
+  calMiniMonth--; if (calMiniMonth < 0) { calMiniMonth = 11; calMiniYear--; }
+  renderCalMini();
 });
-document.getElementById('calPopup').addEventListener('mouseleave', function() {
-  calHovering = false;
-  setTimeout(function() {
-    if (!document.getElementById('clockBtn').matches(':hover') && !document.getElementById('calPopup').matches(':hover')) closeCal();
-  }, 200);
+document.getElementById('miniNext').addEventListener('click', function() {
+  calMiniMonth++; if (calMiniMonth > 11) { calMiniMonth = 0; calMiniYear++; }
+  renderCalMini();
 });
+document.getElementById('calTodayBtn').addEventListener('click', function() {
+  calToday = new Date();
+  calViewYear = calToday.getFullYear(); calViewMonth = calToday.getMonth();
+  calMiniYear = calViewYear; calMiniMonth = calViewMonth;
+  calSelectedDate = new Date();
+  renderCalMain(); renderCalMini();
+});
+renderCalMain(); renderCalMini();
+
+// Clock click opens calendar window
 document.getElementById('clockBtn').addEventListener('click', function(e) {
   e.stopPropagation();
-  if (document.getElementById('calPopup').classList.contains('open')) closeCal();
-  else openCal();
-});
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.tray-dropdown') && !e.target.closest('.system-tray')) closeTray();
-  if (!e.target.closest('.cal-popup') && !e.target.closest('.clock-btn')) closeCal();
-});
-document.addEventListener('mouseleave', function() {
-  closeTray();
-  closeCal();
+  openApp('win-calendar');
 });
 
-// ===== CLOCK / CALENDAR =====
+// ===== CLOCK =====
 function tick() {
   var now = new Date();
   var t = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  var d = now.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'});
   document.getElementById('topClock').textContent = t;
-  document.getElementById('calBigTime').textContent = t;
-  document.getElementById('calBigDate').textContent = now.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric', year:'numeric'});
   document.getElementById('trayBatteryPct').textContent = '--';
 }
 setInterval(tick, 1000); tick();
-function buildCalendar() {
-  var grid = document.getElementById('calGrid');
-  var now = new Date(), y = now.getFullYear(), m = now.getMonth(), today = now.getDate();
-  var first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
-  var h = '';
-  ['S','M','T','W','T','F','S'].forEach(function(d){ h += '<div class="dow">'+d+'</div>'; });
-  for (var i=0;i<first;i++) h += '<div class="day"></div>';
-  for (var d=1;d<=days;d++) h += '<div class="day'+(d===today?' today':'')+'">'+d+'</div>';
-  grid.innerHTML = h;
-}
-buildCalendar();
 
 // ===== CHAT / AI PANEL =====
 function toggleAiPanel() {
