@@ -516,17 +516,21 @@ html, body {
 }
 .note-entry {
   padding: 10px 12px; cursor: pointer; border-bottom: 1px solid var(--border);
-  font-size: 12px; transition: all .2s var(--ease);
+  font-size: 12px; transition: all .2s var(--ease); position: relative;
 }
 .note-entry:hover { background: var(--surface3); }
 .note-entry.active { background: var(--accent); color: #fff; border-left: 3px solid var(--accent); }
-.note-entry-title { font-weight: 600; font-size: 12.5px; margin-bottom: 2px; }
+.note-entry-title { font-weight: 600; font-size: 12.5px; margin-bottom: 2px; padding-right: 18px; }
 .note-entry-preview { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .note-entry.active .note-entry-preview { color: rgba(255,255,255,.7); }
 .note-entry-delete {
-  float: right; background: none; border: none; color: var(--red); cursor: pointer;
-  font-size: 11px; opacity: 0; transition: opacity .2s;
+  position: absolute; top: 8px; right: 8px;
+  background: none; border: none; color: var(--red); cursor: pointer;
+  font-size: 12px; opacity: 0; transition: opacity .2s;
+  width: 18px; height: 18px; display: grid; place-items: center;
+  border-radius: 4px;
 }
+.note-entry-delete:hover { background: rgba(255,95,87,.15); opacity: 1 !important; }
 .note-entry:hover .note-entry-delete { opacity: 1; }
 .notes-editor { flex: 1; display: flex; }
 .notes-textarea {
