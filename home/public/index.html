@@ -40,6 +40,9 @@
 <div class="topbar">
   <div class="topbar-left">
     <button class="activities-btn" id="activitiesBtn">Activities</button>
+    <div class="workspace-indicator" id="workspaceIndicator">
+      <div class="workspace-pill active" data-ws="0" onclick="switchWorkspace(0)"></div>
+    </div>
   </div>
   <div class="topbar-center">
     <button class="clock-btn" id="clockBtn">
@@ -209,14 +212,14 @@
 <div class="desktop" id="desktop">
   <div class="desktop-bg"></div>
   <div class="desktop-icons">
-    <div class="desktop-icon" ondblclick="openApp('win-files'); animateFolderOpen(this)">
+    <div class="desktop-icon" onclick="createWorkspace(this)">
       <div class="folder">
         <div class="folder-back"></div>
         <div class="folder-tab"></div>
         <div class="paper"></div>
         <div class="folder-front"></div>
       </div>
-      <div class="desktop-icon-label">Home</div>
+      <div class="desktop-icon-label">New Desktop</div>
     </div>
   </div>
 </div>

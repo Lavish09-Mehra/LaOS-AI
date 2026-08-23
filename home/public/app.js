@@ -187,6 +187,102 @@ function showDesktop() {
   closeOverview();
   updateAllDockIndicators();
 }
+
+// ===== WORKSPACES =====
+var workspaces = [{ id: 0, name: 'Workspace 1' }];
+var activeWorkspace = 0;
+var workspaceWindows = { 0: [] }; // ws index -> array of window ids
+var wsCounter = 1;
+
+function createWorkspace(triggerEl) {
+  var newIdx = wsCounter++;
+  workspaces.push({ id: newIdx, name: 'Workspace ' + (newIdx + 1) });
+  workspaceWindows[newIdx] = [];
+  updateWorkspaceIndicator();
+  switchWorkspace(newIdx, 'create');
+  if (triggerEl) animateFolderOpen(triggerEl);
+}
+
+function switchWorkspace(idx, direction) {
+  if (idx === activeWorkspace) return;
+  var desktop = document.getElementById('desktop');
+  var prevWs = activeWorkspace;
+  activeWorkspace = idx;
+
+  // Hide all windows on previous workspace
+  (workspaceWindows[prevWs] || []).forEach(function(wid) {
+    var w = document.getElementById(wid);
+    if (w) { w.classList.add('closing'); w.classList.remove('focused');
+      setTimeout(function() { w.classList.remove('open', 'closing'); w.style.display = 'none'; }, 200);
+      openWindows[wid] = false;
+      minimizedWindows[wid] = false;
+    }
+  });
+
+  // Show windows on new workspace
+  (workspaceWindows[activeWorkspace] || []).forEach(function(wid) {
+    var w = document.getElementById(wid);
+    if (w) { w.style.display = ''; w.classList.add('open'); openWindows[wid] = true; }
+  });
+
+  // Transition animation
+  var animClass = direction === 'create' ? 'workspace-create-flash' :
+                  direction === 'left' ? 'workspace-slide-left' : 'workspace-slide-right';
+  desktop.classList.add(animClass);
+  setTimeout(function() { desktop.classList.remove(animClass); }, 400);
+
+  updateWorkspaceIndicator();
+  updateAllDockIndicators();
+  closeOverview();
+}
+
+function updateWorkspaceIndicator() {
+  var container = document.getElementById('workspaceIndicator');
+  container.innerHTML = '';
+  workspaces.forEach(function(ws, i) {
+    var pill = document.createElement('div');
+    pill.className = 'workspace-pill' + (i === activeWorkspace ? ' active' : '');
+    pill.dataset.ws = i;
+    pill.onclick = function() {
+      var dir = i < activeWorkspace ? 'right' : 'left';
+      switchWorkspace(i, dir);
+    };
+    container.appendChild(pill);
+  });
+}
+
+// Patch openApp to track workspace
+var origOpenApp = openApp;
+openApp = function(id) {
+  origOpenApp(id);
+  if (openWindows[id] && workspaceWindows[activeWorkspace].indexOf(id) === -1) {
+    workspaceWindows[activeWorkspace].push(id);
+  }
+};
+// Patch closeApp to untrack workspace
+var origCloseApp = closeApp;
+closeApp = function(id) {
+  origCloseApp(id);
+  var arr = workspaceWindows[activeWorkspace];
+  var idx = arr.indexOf(id);
+  if (idx !== -1) arr.splice(idx, 1);
+};
+
+// Keyboard shortcuts for workspaces
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.ctrlKey && e.key === 'ArrowLeft' && activeWorkspace > 0) {
+    e.preventDefault();
+    switchWorkspace(activeWorkspace - 1, 'right');
+  } else if (e.ctrlKey && e.key === 'ArrowRight' && activeWorkspace < workspaces.length - 1) {
+    e.preventDefault();
+    switchWorkspace(activeWorkspace + 1, 'left');
+  } else if (e.ctrlKey && e.key === 'n') {
+    e.preventDefault();
+    createWorkspace(null);
+  }
+});
+
 function updateDockIndicator(id, open, minimized) {
   var app = id.replace('win-', '');
   var item = document.querySelector('.dock-item[data-app="' + app + '"]');

@@ -220,6 +220,49 @@ html, body {
 }
 .activities-btn:hover { background: var(--surface2); transform: scale(1.04); }
 .activities-btn:active { transform: scale(0.96); }
+
+/* Workspace Indicator */
+.workspace-indicator {
+  display: flex; align-items: center; gap: 4px;
+  margin-left: 8px; padding: 2px 6px;
+  background: rgba(255,255,255,.06); border-radius: 10px;
+  transition: all .3s var(--ease);
+}
+.workspace-pill {
+  width: 18px; height: 4px; border-radius: 2px;
+  background: rgba(255,255,255,.25); cursor: pointer;
+  transition: all .3s var(--ease);
+}
+.workspace-pill:hover { background: rgba(255,255,255,.45); transform: scaleY(1.4); }
+.workspace-pill.active {
+  width: 26px; background: var(--lav-cyan);
+  box-shadow: 0 0 8px rgba(6,182,212,.5);
+}
+
+/* Workspace Transition */
+.workspace-transitioning .desktop { animation: wsSlide .35s var(--ease); }
+@keyframes wsSlide {
+  0% { opacity: 0; transform: scale(.92) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.workspace-slide-left .desktop { animation: wsSlideLeft .35s var(--ease); }
+@keyframes wsSlideLeft {
+  0% { opacity: 0; transform: translateX(40px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.workspace-slide-right .desktop { animation: wsSlideRight .35s var(--ease); }
+@keyframes wsSlideRight {
+  0% { opacity: 0; transform: translateX(-40px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* Workspace Create Flash */
+.workspace-create-flash .desktop { animation: wsCreateFlash .5s var(--ease); }
+@keyframes wsCreateFlash {
+  0% { filter: brightness(1); }
+  30% { filter: brightness(1.6); }
+  100% { filter: brightness(1); }
+}
 .clock-btn {
   background: none; border: none; color: var(--text); font: inherit;
   padding: 2px 12px; border-radius: var(--radius-sm); cursor: pointer;
