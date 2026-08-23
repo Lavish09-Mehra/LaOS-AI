@@ -584,6 +584,7 @@ function esc(str) { var d=document.createElement('div'); d.textContent=str; retu
 // ===== TERMINAL =====
 var termHistory = [];
 var termHistIdx = -1;
+var termDirs = [];
 var termBuf = '';
 var termReady = true;
 
@@ -655,6 +656,7 @@ function termExec(cmd) {
       termPrint('  help              Show this help message', 'term-dim');
       termPrint('  clear / cls       Clear terminal', 'term-dim');
       termPrint('  echo [text]       Print text', 'term-dim');
+      termPrint('  mkdir [name]      Create a directory', 'term-dim');
       termPrint('  date              Show current date/time', 'term-dim');
       termPrint('  whoami            Show current user', 'term-dim');
       termPrint('  hostname          Show hostname', 'term-dim');
@@ -678,8 +680,16 @@ function termExec(cmd) {
       document.getElementById('termOutput').innerHTML = '';
       break;
 
+    // echo: prints arguments to terminal output
     case 'echo':
       termPrint(args.join(' '));
+      break;
+
+    // mkdir: creates a virtual directory in session storage
+    case 'mkdir':
+      if (!args[0]) { termPrint('mkdir: missing operand', 'term-red'); break; }
+      termDirs.push(args[0]);
+      termPrint('Directory created: ' + args[0], 'term-green');
       break;
 
     case 'date':
