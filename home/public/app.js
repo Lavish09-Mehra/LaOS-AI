@@ -236,7 +236,9 @@ document.getElementById('systemTray').addEventListener('click', function(e) {
 });
 
 // ===== CALENDAR =====
+var calHovering = false;
 function openCal() {
+  calHovering = true;
   closeTray();
   document.getElementById('calPopup').classList.add('open');
 }
@@ -248,14 +250,19 @@ function closeCal() {
 document.getElementById('clockBtn').addEventListener('mouseenter', function() {
   openCal();
 });
-document.getElementById('clockBtn').addEventListener('mouseleave', function(e) {
-  var cp = document.getElementById('calPopup');
+document.getElementById('clockBtn').addEventListener('mouseleave', function() {
   setTimeout(function() {
-    if (!cp.matches(':hover') && !document.getElementById('clockBtn').matches(':hover')) closeCal();
-  }, 200);
+    if (!calHovering) closeCal();
+  }, 300);
+});
+document.getElementById('calPopup').addEventListener('mouseenter', function() {
+  calHovering = true;
 });
 document.getElementById('calPopup').addEventListener('mouseleave', function() {
-  if (!document.getElementById('clockBtn').matches(':hover')) closeCal();
+  calHovering = false;
+  setTimeout(function() {
+    if (!document.getElementById('clockBtn').matches(':hover') && !document.getElementById('calPopup').matches(':hover')) closeCal();
+  }, 200);
 });
 document.getElementById('clockBtn').addEventListener('click', function(e) {
   e.stopPropagation();

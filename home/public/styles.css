@@ -123,9 +123,9 @@ html, body {
 
 /* ===== CALENDAR POPUP ===== */
 .cal-popup {
-  position: fixed; top: calc(var(--topbar-h) + 4px); left: 50%; transform: translateX(-50%);
+  position: fixed; top: calc(var(--topbar-h) - 4px); left: 50%; transform: translateX(-50%);
   width: 320px; background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); display: none; z-index: 110;
+  border-radius: var(--radius); display: none; z-index: 110; padding-top: 20px;
   box-shadow: 0 12px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(122,162,247,.08);
 }
 .cal-popup.open {
@@ -137,14 +137,14 @@ html, body {
 .cal-big-date { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
 .cal-grid {
   padding: 12px; display: grid; grid-template-columns: repeat(7,1fr);
-  gap: 4px; font-size: 11px; text-align: center; color: var(--text-dim);
+  gap: 2px; font-size: 12px; text-align: center; color: var(--text-dim);
 }
-.cal-grid .dow { font-weight: 600; padding: 4px 0; opacity: .5; }
+.cal-grid .dow { font-weight: 600; padding: 6px 0; opacity: .5; font-size: 11px; }
 .cal-grid .day {
-  padding: 5px 0; border-radius: 6px; cursor: pointer;
-  transition: all .15s var(--ease);
+  padding: 7px 0; border-radius: 8px; cursor: pointer;
+  transition: all .15s var(--ease); font-size: 12px;
 }
-.cal-grid .day:hover { background: var(--surface2); transform: scale(1.12); }
+.cal-grid .day:hover { background: var(--surface2); transform: scale(1.12); color: var(--text); }
 .cal-grid .day:active { transform: scale(0.9); }
 .cal-grid .day.today {
   background: var(--accent); color: #fff; font-weight: 600;
