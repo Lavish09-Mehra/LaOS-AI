@@ -154,6 +154,14 @@ document.addEventListener('mousemove', function(e) {
 });
 document.addEventListener('mouseup', function() { dragState = null; });
 
+// Double-click header to minimize
+document.addEventListener('dblclick', function(e) {
+  var header = e.target.closest('.win-header');
+  if (!header || e.target.closest('.win-controls')) return;
+  var win = header.closest('.window');
+  if (win) minimizeApp(win.id);
+});
+
 // Click window to focus
 document.addEventListener('mousedown', function(e) {
   var win = e.target.closest('.window');
