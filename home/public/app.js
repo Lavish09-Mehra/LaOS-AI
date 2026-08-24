@@ -418,19 +418,19 @@ function closeTray() {
   el.style.animation = 'fadeOut .15s ease forwards';
   setTimeout(function() { el.classList.remove('open'); el.style.animation = ''; }, 150);
 }
-document.getElementById('systemTray').addEventListener('mouseenter', function() {
+document.getElementById('taskbarTray').addEventListener('mouseenter', function() {
   openTray();
 });
-document.getElementById('systemTray').addEventListener('mouseleave', function(e) {
+document.getElementById('taskbarTray').addEventListener('mouseleave', function(e) {
   var dd = document.getElementById('trayDropdown');
   setTimeout(function() {
-    if (!dd.matches(':hover') && !document.getElementById('systemTray').matches(':hover')) closeTray();
+    if (!dd.matches(':hover') && !document.getElementById('taskbarTray').matches(':hover')) closeTray();
   }, 200);
 });
 document.getElementById('trayDropdown').addEventListener('mouseleave', function() {
-  if (!document.getElementById('systemTray').matches(':hover')) closeTray();
+  if (!document.getElementById('taskbarTray').matches(':hover')) closeTray();
 });
-document.getElementById('systemTray').addEventListener('click', function(e) {
+document.getElementById('taskbarTray').addEventListener('click', function(e) {
   e.stopPropagation();
   if (document.getElementById('trayDropdown').classList.contains('open')) closeTray();
   else openTray();
