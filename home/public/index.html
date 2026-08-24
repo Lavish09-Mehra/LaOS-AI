@@ -213,13 +213,49 @@
   <div class="desktop-bg"></div>
   <div class="desktop-icons">
     <div class="desktop-icon" ondblclick="openApp('win-files'); animateFolderOpen(this)">
-      <div class="folder">
+      <div class="folder folder-lg">
         <div class="folder-back"></div>
         <div class="folder-tab"></div>
         <div class="paper"></div>
         <div class="folder-front"></div>
       </div>
       <div class="desktop-icon-label">Home (C:)</div>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('win-settings')">
+      <div class="desk-icon desk-settings">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#c0caf5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="24" cy="24" r="8"/>
+          <path d="M24 2v6M24 40v6M2 24h6M40 24h6M7.5 7.5l4.2 4.2M36.3 36.3l4.2 4.2M7.5 40.5l4.2-4.2M36.3 11.7l4.2-4.2"/>
+          <circle cx="24" cy="24" r="14" stroke-dasharray="4 3" opacity=".4"/>
+        </svg>
+      </div>
+      <div class="desktop-icon-label">Settings</div>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('win-browser')">
+      <div class="desk-icon desk-network">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#73daca" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="24" cy="10" r="5"/>
+          <circle cx="10" cy="36" r="5"/>
+          <circle cx="38" cy="36" r="5"/>
+          <path d="M24 15v8M16.5 30l-4 4.5M31.5 30l4 4.5"/>
+          <path d="M15 38c0 3 4 5 9 5s9-2 9-5" opacity=".4"/>
+        </svg>
+      </div>
+      <div class="desktop-icon-label">Network</div>
+    </div>
+    <div class="desktop-icon" ondblclick="filesRecycleBin()">
+      <div class="desk-icon desk-bin">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#f7768e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 14h32"/>
+          <path d="M12 14l2 26h20l2-26"/>
+          <path d="M18 8h12"/>
+          <path d="M20 20v14"/>
+          <path d="M28 20v14"/>
+          <path d="M15 20v14" opacity=".5"/>
+          <path d="M33 20v14" opacity=".5"/>
+        </svg>
+      </div>
+      <div class="desktop-icon-label">Recycle Bin</div>
     </div>
   </div>
 </div>

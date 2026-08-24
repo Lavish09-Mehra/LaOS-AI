@@ -521,6 +521,7 @@ function filesNavUp() {
   filesNavigate(parts.join('\\') || parts[0] + '\\');
 }
 function filesRefresh() { filesRender(); }
+function filesRecycleBin() { alert('Recycle Bin is empty.'); }
 
 function filesSetView(v) {
   fmView = v;
