@@ -714,6 +714,10 @@ socket.on('reply', function(data) {
   addAiMessage(data.text || '...', 'assistant', data.engine || '');
   if (data.session_id) sessionId = data.session_id;
   document.getElementById('footEngine').className = 'status-dot on';
+  if (termAiPending) {
+    termAiPending = false;
+    termPrint('AI: ' + (data.text || '...'), 'term-cyan');
+  }
   if (data.text && settings.voice_output) speak(data.text);
 });
 socket.on('status', function(data) {
@@ -1033,6 +1037,7 @@ var termHistory = [];
 var termHistIdx = -1;
 var termDirs = [];
 var termBuf = '';
+var termAiPending = false;
 var termReady = true;
 
 function termFocus() {
@@ -1241,6 +1246,7 @@ function termExec(cmd) {
       if (!args.length) { termPrint('Usage: ai <message>', 'term-yellow'); break; }
       var msg = args.join(' ');
       termPrint('Thinking...', 'term-dim');
+      termAiPending = true;
       socket.emit('chat', { text: msg, session_id: sessionId });
       break;
 
