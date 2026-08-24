@@ -418,19 +418,19 @@ function closeTray() {
   el.style.animation = 'fadeOut .15s ease forwards';
   setTimeout(function() { el.classList.remove('open'); el.style.animation = ''; }, 150);
 }
-document.getElementById('taskbarTray').addEventListener('mouseenter', function() {
+document.getElementById('systemTray').addEventListener('mouseenter', function() {
   openTray();
 });
-document.getElementById('taskbarTray').addEventListener('mouseleave', function(e) {
+document.getElementById('systemTray').addEventListener('mouseleave', function(e) {
   var dd = document.getElementById('trayDropdown');
   setTimeout(function() {
-    if (!dd.matches(':hover') && !document.getElementById('taskbarTray').matches(':hover')) closeTray();
+    if (!dd.matches(':hover') && !document.getElementById('systemTray').matches(':hover')) closeTray();
   }, 200);
 });
 document.getElementById('trayDropdown').addEventListener('mouseleave', function() {
-  if (!document.getElementById('taskbarTray').matches(':hover')) closeTray();
+  if (!document.getElementById('systemTray').matches(':hover')) closeTray();
 });
-document.getElementById('taskbarTray').addEventListener('click', function(e) {
+document.getElementById('systemTray').addEventListener('click', function(e) {
   e.stopPropagation();
   if (document.getElementById('trayDropdown').classList.contains('open')) closeTray();
   else openTray();
@@ -912,10 +912,28 @@ document.getElementById('clockBtn').addEventListener('click', function(e) {
 });
 
 // ===== CLOCK =====
+var calMonthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var calDayShort = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function tick() {
   var now = new Date();
-  var t = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  document.getElementById('topClock').textContent = t;
+  var h = now.getHours();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  var h12 = h % 12 || 12;
+  var m = now.getMinutes().toString().padStart(2, '0');
+  var s = now.getSeconds().toString().padStart(2, '0');
+  var topTime = h12 + ':' + m + ' ' + ampm;
+  document.getElementById('topClock').textContent = topTime;
+
+  var tmClock = document.getElementById('tmClock');
+  if (tmClock) tmClock.textContent = h12 + ':' + m + ':' + s + ' ' + ampm;
+
+  var tmCal = document.getElementById('tmCalMini');
+  if (tmCal) {
+    var dayName = calDayShort[now.getDay()];
+    var monthName = calMonthShort[now.getMonth()];
+    tmCal.textContent = dayName + ', ' + monthName + ' ' + now.getDate();
+  }
+
   document.getElementById('trayBatteryPct').textContent = '--';
 }
 setInterval(tick, 1000); tick();
