@@ -102,7 +102,7 @@ var openWindows = {};
 var minimizedWindows = {};
 var windowPositions = {
   'win-terminal': { top: 80, left: 120 },
-  'win-files': { top: 100, left: 200 },
+  'win-files': { top: 60, left: 160, width: '80%', height: '75%' },
   'win-browser': { top: 90, left: 240 },
   'win-settings': { top: 70, left: 180 },
   'win-notes': { top: 100, left: 200 },
@@ -124,6 +124,8 @@ function openApp(id) {
     var pos = windowPositions[id] || { top: 80 + windowCount * 30, left: 120 + windowCount * 30 };
     win.style.top = pos.top + 'px';
     win.style.left = pos.left + 'px';
+    if (pos.width) win.style.width = pos.width;
+    if (pos.height) win.style.height = pos.height;
   }
   win.style.display = '';
   win.classList.add('open', 'focused');
@@ -133,6 +135,7 @@ function openApp(id) {
   focusWindow(id);
   closeOverview();
   closeTray();
+  if (id === 'win-files') filesRender();
   updateDockIndicator(id, true);
 }
 function closeApp(id) {
@@ -432,6 +435,296 @@ document.getElementById('systemTray').addEventListener('click', function(e) {
   if (document.getElementById('trayDropdown').classList.contains('open')) closeTray();
   else openTray();
 });
+
+// ===== FILE MANAGER =====
+var fmFS = {
+  'C:\\': { type: 'drive', children: ['Users', 'Program Files', 'Windows'] },
+  'C:\\Users': { type: 'folder', children: ['user'] },
+  'C:\\Users\\user': { type: 'folder', children: ['Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos', '.config', 'README.md', 'notes.txt'] },
+  'C:\\Users\\user\\Desktop': { type: 'folder', children: ['shortcut.lnk'] },
+  'C:\\Users\\user\\Documents': { type: 'folder', children: ['report.docx', 'budget.xlsx', 'presentation.pptx'] },
+  'C:\\Users\\user\\Downloads': { type: 'folder', children: ['setup.exe', 'photo.jpg', 'archive.zip'] },
+  'C:\\Users\\user\\Pictures': { type: 'folder', children: ['vacation.jpg', 'screenshot.png', 'wallpaper.jpg'] },
+  'C:\\Users\\user\\Music': { type: 'folder', children: ['song.mp3', 'album'] },
+  'C:\\Users\\user\\Videos': { type: 'folder', children: ['tutorial.mp4', 'clip.mov'] },
+  'C:\\Users\\user\\.config': { type: 'folder', children: ['settings.json', 'themes'] },
+  'C:\\Users\\user\\README.md': { type: 'file', size: 2048 },
+  'C:\\Users\\user\\notes.txt': { type: 'file', size: 512 },
+  'C:\\Program Files': { type: 'folder', children: ['App1', 'App2'] },
+  'C:\\Windows': { type: 'folder', children: ['System32'] },
+  'C:\\Windows\\System32': { type: 'folder', children: ['cmd.exe', 'notepad.exe'] },
+  'D:\\': { type: 'drive', children: ['Projects', 'Backup'] },
+  'D:\\Projects': { type: 'folder', children: ['LavOS', 'website'] },
+  'D:\\Projects\\LavOS': { type: 'folder', children: ['brain', 'home', 'kernel'] },
+  'D:\\Projects\\LavOS\\brain': { type: 'folder', children: ['main.py', 'llm.py', 'agent.py'] },
+  'D:\\Projects\\LavOS\\home': { type: 'folder', children: ['server.js', 'public'] },
+  'D:\\Projects\\LavOS\\kernel': { type: 'folder', children: ['boot.asm', 'kernel.c'] },
+  'D:\\Projects\\website': { type: 'folder', children: ['index.html', 'style.css'] },
+  'D:\\Backup': { type: 'folder', children: ['backup.zip'] },
+  'E:\\': { type: 'drive', children: ['Media', 'Games'] },
+  'E:\\Media': { type: 'folder', children: ['movies', 'photos'] },
+  'E:\\Games': { type: 'folder', children: ['game1', 'game2'] }
+};
+var fmCurrentPath = 'C:\\';
+var fmHistory = ['C:\\'];
+var fmHistoryIdx = 0;
+var fmView = 'grid';
+var fmSort = 'name';
+var fmClipboard = null;
+var fmSelected = null;
+var fmCtxTarget = null;
+
+var fmIconMap = {
+  folder: '📁', drive: '💽',
+  'docx': '📄', 'xlsx': '📊', 'pptx': '📑', 'txt': '📝', 'md': '📝',
+  'jpg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'svg': '🖼️',
+  'mp3': '🎵', 'wav': '🎵', 'flac': '🎵',
+  'mp4': '🎬', 'mov': '🎬', 'avi': '🎬',
+  'zip': '📦', 'rar': '📦', '7z': '📦',
+  'exe': '⚙️', 'msi': '⚙️', 'lnk': '🔗', 'json': '⚙️',
+  default: '📄'
+};
+var fmSizeUnits = ['B', 'KB', 'MB', 'GB'];
+
+function fmGetIcon(name, type) {
+  if (type === 'folder' || type === 'drive') return fmIconMap[type] || '📁';
+  var ext = name.split('.').pop().toLowerCase();
+  return fmIconMap[ext] || fmIconMap.default;
+}
+function fmFormatSize(bytes) {
+  if (!bytes) return '—';
+  var u = 0;
+  while (bytes >= 1024 && u < fmSizeUnits.length - 1) { bytes /= 1024; u++; }
+  return Math.round(bytes) + ' ' + fmSizeUnits[u];
+}
+function fmGetDate() {
+  var d = new Date();
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function filesNavigate(path) {
+  path = path.replace(/\\\\/g, '\\');
+  if (!fmFS[path] || (fmFS[path].type !== 'folder' && fmFS[path].type !== 'drive')) return;
+  fmCurrentPath = path;
+  if (fmHistoryIdx < fmHistory.length - 1) fmHistory = fmHistory.slice(0, fmHistoryIdx + 1);
+  fmHistory.push(path);
+  fmHistoryIdx = fmHistory.length - 1;
+  fmSelected = null;
+  filesRender();
+}
+function filesNavBack() { if (fmHistoryIdx > 0) { fmHistoryIdx--; fmCurrentPath = fmHistory[fmHistoryIdx]; fmSelected = null; filesRender(); } }
+function filesNavForward() { if (fmHistoryIdx < fmHistory.length - 1) { fmHistoryIdx++; fmCurrentPath = fmHistory[fmHistoryIdx]; fmSelected = null; filesRender(); } }
+function filesNavUp() {
+  var parts = fmCurrentPath.replace(/\\$/, '').split('\\');
+  if (parts.length <= 1) return;
+  parts.pop();
+  filesNavigate(parts.join('\\') || parts[0] + '\\');
+}
+function filesRefresh() { filesRender(); }
+
+function filesSetView(v) {
+  fmView = v;
+  document.querySelectorAll('.files-view-group .files-tool-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.view === v);
+  });
+  filesRender();
+}
+function filesSortChange(v) { fmSort = v; filesRender(); }
+
+function filesSortItems(items) {
+  var dirs = items.filter(function(i) { return i.isdir; });
+  var files = items.filter(function(i) { return !i.isdir; });
+  var cmp = function(a, b) {
+    if (fmSort === 'name') return a.name.localeCompare(b.name);
+    if (fmSort === 'size') return (a.size || 0) - (b.size || 0);
+    if (fmSort === 'type') {
+      var ea = a.name.split('.').pop(), eb = b.name.split('.').pop();
+      return ea.localeCompare(eb);
+    }
+    return 0;
+  };
+  dirs.sort(cmp); files.sort(cmp);
+  return dirs.concat(files);
+}
+
+function filesRender() {
+  var node = fmFS[fmCurrentPath];
+  var content = document.getElementById('filesContent');
+  var addrInput = document.getElementById('filesAddrInput');
+  if (!content || !node) return;
+  addrInput.value = fmCurrentPath;
+
+  // Update sidebar active
+  document.querySelectorAll('.files-nav-item').forEach(function(el) {
+    var p = el.dataset.path;
+    el.classList.toggle('active', p && fmCurrentPath.indexOf(p.replace(/\\\\/g, '\\')) === 0);
+  });
+
+  var children = (node.children || []).map(function(name) {
+    var childPath = fmCurrentPath.replace(/\\$/, '') + '\\' + name;
+    var childNode = fmFS[childPath];
+    var isdir = childNode && (childNode.type === 'folder' || childNode.type === 'drive');
+    return { name: name, isdir: isdir, size: childNode ? childNode.size || 0 : 0, path: childPath };
+  });
+  children = filesSortItems(children);
+
+  content.className = 'files-content' + (fmView === 'list' ? ' view-list' : fmView === 'details' ? ' view-details' : '');
+  var html = '';
+
+  if (fmView === 'details') {
+    html += '<div class="files-details-header"><span>Name</span><span>Type</span><span>Size</span><span>Date</span></div>';
+  }
+
+  children.forEach(function(item) {
+    var icon = fmGetIcon(item.name, item.isdir ? 'folder' : 'file');
+    var ext = item.name.split('.').pop().toLowerCase();
+    var typeLabel = item.isdir ? 'File folder' : ext.toUpperCase() + ' File';
+    var sel = fmSelected === item.name ? ' selected' : '';
+    if (fmView === 'details') {
+      html += '<div class="files-item' + sel + '" data-name="' + item.name + '" data-path="' + item.path + '" onclick="filesSelect(\'' + item.name + '\')" ondblclick="filesOpen(\'' + item.name + '\')">';
+      html += '<span class="files-item-icon">' + icon + '</span>';
+      html += '<span class="files-item-name">' + item.name + '</span>';
+      html += '<span class="files-detail-col">' + typeLabel + '</span>';
+      html += '<span class="files-detail-col">' + (item.isdir ? '—' : fmFormatSize(item.size)) + '</span>';
+      html += '<span class="files-detail-col">' + fmGetDate() + '</span>';
+      html += '</div>';
+    } else {
+      html += '<div class="files-item' + sel + '" data-name="' + item.name + '" data-path="' + item.path + '" onclick="filesSelect(\'' + item.name + '\')" ondblclick="filesOpen(\'' + item.name + '\')">';
+      html += '<span class="files-item-icon">' + icon + '</span>';
+      html += '<span class="files-item-name">' + item.name + '</span>';
+      html += '</div>';
+    }
+  });
+
+  content.innerHTML = html;
+  document.getElementById('filesStatusCount').textContent = children.length + ' item' + (children.length !== 1 ? 's' : '');
+  document.getElementById('filesStatusSelected').textContent = fmSelected ? '1 selected' : '';
+}
+
+function filesSelect(name) {
+  fmSelected = name;
+  fmCtxTarget = name;
+  document.querySelectorAll('.files-item').forEach(function(el) {
+    el.classList.toggle('selected', el.dataset.name === name);
+  });
+  document.getElementById('filesStatusSelected').textContent = '1 selected';
+}
+
+function filesOpen(name) {
+  var childPath = fmCurrentPath.replace(/\\$/, '') + '\\' + name;
+  var node = fmFS[childPath];
+  if (node && (node.type === 'folder' || node.type === 'drive')) {
+    filesNavigate(childPath);
+  }
+}
+
+function filesNewFolder() {
+  closeFilesCtx();
+  var name = 'New Folder';
+  var base = name, n = 1;
+  var node = fmFS[fmCurrentPath];
+  while (node.children && node.children.indexOf(name) !== -1) { name = base + ' (' + n + ')'; n++; }
+  if (!node.children) node.children = [];
+  node.children.push(name);
+  fmFS[fmCurrentPath.replace(/\\$/, '') + '\\' + name] = { type: 'folder', children: [] };
+  filesRender();
+}
+
+function filesNewFile() {
+  closeFilesCtx();
+  var name = 'New File.txt';
+  var base = name, n = 1;
+  var node = fmFS[fmCurrentPath];
+  while (node.children && node.children.indexOf(name) !== -1) { name = base.replace('.txt', '') + ' (' + n + ').txt'; n++; }
+  if (!node.children) node.children = [];
+  node.children.push(name);
+  fmFS[fmCurrentPath.replace(/\\$/, '') + '\\' + name] = { type: 'file', size: 0 };
+  filesRender();
+}
+
+function filesContextMenu(e) {
+  e.preventDefault();
+  var ctx = document.getElementById('filesContextMenu');
+  ctx.style.display = 'block';
+  ctx.style.left = Math.min(e.clientX, window.innerWidth - 220) + 'px';
+  ctx.style.top = Math.min(e.clientY, window.innerHeight - 260) + 'px';
+}
+function closeFilesCtx() { document.getElementById('filesContextMenu').style.display = 'none'; }
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.files-context-menu')) closeFilesCtx();
+});
+
+function filesCtxOpen() { if (fmCtxTarget) filesOpen(fmCtxTarget); closeFilesCtx(); }
+function filesCtxCut() { fmClipboard = { op: 'cut', name: fmCtxTarget, path: fmCurrentPath }; closeFilesCtx(); }
+function filesCtxCopy() { fmClipboard = { op: 'copy', name: fmCtxTarget, path: fmCurrentPath }; closeFilesCtx(); }
+function filesCtxPaste() {
+  if (!fmClipboard) { closeFilesCtx(); return; }
+  var srcPath = fmClipboard.path.replace(/\\$/, '') + '\\' + fmClipboard.name;
+  var dstPath = fmCurrentPath.replace(/\\$/, '') + '\\' + fmClipboard.name;
+  var srcNode = fmFS[srcPath];
+  if (srcNode) {
+    fmFS[dstPath] = JSON.parse(JSON.stringify(srcNode));
+    var dstParent = fmFS[fmCurrentPath];
+    if (!dstParent.children) dstParent.children = [];
+    dstParent.children.push(fmClipboard.name);
+    if (fmClipboard.op === 'cut') {
+      var srcParent = fmFS[fmClipboard.path];
+      var idx = srcParent.children.indexOf(fmClipboard.name);
+      if (idx !== -1) srcParent.children.splice(idx, 1);
+      delete fmFS[srcPath];
+    }
+  }
+  fmClipboard = null;
+  filesRender();
+  closeFilesCtx();
+}
+function filesCtxRename() {
+  if (!fmCtxTarget) return;
+  closeFilesCtx();
+  var el = document.querySelector('.files-item.selected .files-item-name');
+  if (!el) return;
+  var input = document.createElement('input');
+  input.type = 'text'; input.value = fmCtxTarget;
+  input.className = 'files-item-name editing';
+  el.parentNode.replaceChild(input, el);
+  input.focus(); input.select();
+  input.addEventListener('blur', function() { finishRename(input, fmCtxTarget); });
+  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = fmCtxTarget; input.blur(); } });
+}
+function finishRename(input, oldName) {
+  var newName = input.value.trim();
+  if (!newName || newName === oldName) { filesRender(); return; }
+  var node = fmFS[fmCurrentPath];
+  var idx = node.children.indexOf(oldName);
+  if (idx !== -1) {
+    node.children[idx] = newName;
+    var oldPath = fmCurrentPath.replace(/\\$/, '') + '\\' + oldName;
+    var newPath = fmCurrentPath.replace(/\\$/, '') + '\\' + newName;
+    if (fmFS[oldPath]) { fmFS[newPath] = fmFS[oldPath]; delete fmFS[oldPath]; }
+  }
+  filesRender();
+}
+function filesCtxDelete() {
+  if (!fmCtxTarget) return;
+  closeFilesCtx();
+  var node = fmFS[fmCurrentPath];
+  var idx = node.children.indexOf(fmCtxTarget);
+  if (idx !== -1) {
+    node.children.splice(idx, 1);
+    var delPath = fmCurrentPath.replace(/\\$/, '') + '\\' + fmCtxTarget;
+    delete fmFS[delPath];
+    fmSelected = null;
+    filesRender();
+  }
+}
+function filesCtxProperties() {
+  if (!fmCtxTarget) return;
+  closeFilesCtx();
+  var childPath = fmCurrentPath.replace(/\\$/, '') + '\\' + fmCtxTarget;
+  var node = fmFS[childPath];
+  var isdir = node && (node.type === 'folder' || node.type === 'drive');
+  alert(fmCtxTarget + '\n\nType: ' + (isdir ? 'Folder' : 'File') + '\nSize: ' + fmFormatSize(node ? node.size : 0) + '\nPath: ' + childPath + '\nModified: ' + fmGetDate());
+}
 
 // ===== CALENDAR =====
 var calMonthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];

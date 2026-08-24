@@ -212,14 +212,14 @@
 <div class="desktop" id="desktop">
   <div class="desktop-bg"></div>
   <div class="desktop-icons">
-    <div class="desktop-icon" onclick="createWorkspace(this)">
+    <div class="desktop-icon" ondblclick="openApp('win-files'); animateFolderOpen(this)">
       <div class="folder">
         <div class="folder-back"></div>
         <div class="folder-tab"></div>
         <div class="paper"></div>
         <div class="folder-front"></div>
       </div>
-      <div class="desktop-icon-label">New Desktop</div>
+      <div class="desktop-icon-label">Home (C:)</div>
     </div>
   </div>
 </div>
@@ -326,35 +326,105 @@
   </div>
 </div>
 
-<!-- Files -->
-<div class="window" id="win-files">
+<!-- Files — Windows 12-style File Manager -->
+<div class="window files-window" id="win-files">
   <div class="win-header">
-    <div class="win-title">Files</div>
+    <div class="win-title">📁 Home (C:)</div>
     <div class="win-controls">
-<button class="win-btn win-close" onclick="closeApp('win-files')"></button>
-          <button class="win-btn win-min" onclick="minimizeApp('win-files')"></button>
-          <button class="win-btn win-max" onclick="toggleFullScreen('win-files')"></button>
+      <button class="win-btn win-close" onclick="closeApp('win-files')"></button>
+      <button class="win-btn win-min" onclick="minimizeApp('win-files')"></button>
+      <button class="win-btn win-max" onclick="toggleFullScreen('win-files')"></button>
     </div>
   </div>
-  <div class="win-body">
-    <div class="files-sidebar">
-      <div class="files-nav-item active">&#128193; Home</div>
-      <div class="files-nav-item">&#128194; Documents</div>
-      <div class="files-nav-item">&#128190; Downloads</div>
-      <div class="files-nav-item">&#128191; Music</div>
-      <div class="files-nav-item">&#127909; Videos</div>
-      <div class="files-nav-item">&#128193; Pictures</div>
-      <div class="files-nav-item">&#9881; .config</div>
+  <div class="files-toolbar">
+    <div class="files-toolbar-left">
+      <button class="files-tool-btn" onclick="filesNavBack()" title="Back">&#8249;</button>
+      <button class="files-tool-btn" onclick="filesNavForward()" title="Forward">&#8250;</button>
+      <button class="files-tool-btn" onclick="filesNavUp()" title="Up one level">&#8593;</button>
+      <button class="files-tool-btn" onclick="filesRefresh()" title="Refresh">&#8635;</button>
     </div>
-    <div class="files-main">
-      <div class="files-item"><div class="files-icon">&#128193;</div><span>Documents</span></div>
-      <div class="files-item"><div class="files-icon">&#128193;</div><span>Downloads</span></div>
-      <div class="files-item"><div class="files-icon">&#128193;</div><span>Projects</span></div>
-      <div class="files-item"><div class="files-icon">&#128193;</div><span>.config</span></div>
-      <div class="files-item"><div class="files-icon">&#128196;</div><span>README.md</span></div>
-      <div class="files-item"><div class="files-icon">&#128196;</div><span>notes.txt</span></div>
+    <div class="files-address-bar" id="filesAddressBar">
+      <span class="files-addr-icon">📁</span>
+      <input type="text" id="filesAddrInput" class="files-addr-input" value="C:\\" readonly>
+    </div>
+    <div class="files-toolbar-right">
+      <div class="files-view-group">
+        <button class="files-tool-btn active" data-view="grid" onclick="filesSetView('grid')" title="Grid view">&#9783;</button>
+        <button class="files-tool-btn" data-view="list" onclick="filesSetView('list')" title="List view">&#9776;</button>
+        <button class="files-tool-btn" data-view="details" onclick="filesSetView('details')" title="Details view">&#9638;</button>
+      </div>
+      <div class="files-sort-group">
+        <select id="filesSortSelect" class="files-sort-select" onchange="filesSortChange(this.value)">
+          <option value="name">Name</option>
+          <option value="date">Date</option>
+          <option value="size">Size</option>
+          <option value="type">Type</option>
+        </select>
+      </div>
+      <button class="files-tool-btn" onclick="filesNewFolder()" title="New folder">&#128193;+</button>
+      <button class="files-tool-btn" onclick="filesNewFile()" title="New file">&#128196;+</button>
     </div>
   </div>
+  <div class="files-body">
+    <div class="files-sidebar" id="filesSidebar">
+      <div class="files-nav-section">Quick Access</div>
+      <div class="files-nav-item active" onclick="filesNavigate('C:\\\\')" data-path="C:\\">
+        <span class="files-nav-icon">💻</span><span>This PC</span>
+      </div>
+      <div class="files-nav-item" onclick="filesNavigate('C:\\\\Users\\\\user\\\\Desktop')" data-path="C:\\Users\\user\\Desktop">
+        <span class="files-nav-icon">🖥️</span><span>Desktop</span>
+      </div>
+      <div class="files-nav-item" onclick="filesNavigate('C:\\\\Users\\\\user\\\\Documents')" data-path="C:\\Users\\user\\Documents">
+        <span class="files-nav-icon">📄</span><span>Documents</span>
+      </div>
+      <div class="files-nav-item" onclick="filesNavigate('C:\\\\Users\\\\user\\\\Downloads')" data-path="C:\\Users\\user\\Downloads">
+        <span class="files-nav-icon">⬇️</span><span>Downloads</span>
+      </div>
+      <div class="files-nav-item" onclick="filesNavigate('C:\\\\Users\\\\user\\\\Pictures')" data-path="C:\\Users\\user\\Pictures">
+        <span class="files-nav-icon">🖼️</span><span>Pictures</span>
+      </div>
+      <div class="files-nav-item" onclick="filesNavigate('C:\\\\Users\\\\user\\\\Music')" data-path="C:\\Users\\user\\Music">
+        <span class="files-nav-icon">🎵</span><span>Music</span>
+      </div>
+      <div class="files-nav-item" onclick="filesNavigate('C:\\\\Users\\\\user\\\\Videos')" data-path="C:\\Users\\user\\Videos">
+        <span class="files-nav-icon">🎬</span><span>Videos</span>
+      </div>
+      <div class="files-nav-section">Drives</div>
+      <div class="files-nav-item" onclick="filesNavigate('C:\\\\')" data-path="C:\\">
+        <span class="files-nav-icon">💽</span><span>Local Disk (C:)</span>
+      </div>
+      <div class="files-nav-item" onclick="filesNavigate('D:\\\\')" data-path="D:\\">
+        <span class="files-nav-icon">💽</span><span>Data (D:)</span>
+      </div>
+      <div class="files-nav-item" onclick="filesNavigate('E:\\\\')" data-path="E:\\">
+        <span class="files-nav-icon">💿</span><span>Projects (E:)</span>
+      </div>
+    </div>
+    <div class="files-content-wrap">
+      <div class="files-content" id="filesContent" oncontextmenu="filesContextMenu(event)"></div>
+    </div>
+  </div>
+  <div class="files-statusbar">
+    <span id="filesStatusCount">0 items</span>
+    <span id="filesStatusSelected"></span>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div class="files-context-menu" id="filesContextMenu" style="display:none;">
+  <div class="ctx-item" onclick="filesCtxOpen()"><span>&#128193;</span>Open</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" onclick="filesCtxCut()"><span>&#9988;</span>Cut</div>
+  <div class="ctx-item" onclick="filesCtxCopy()"><span>&#128203;</span>Copy</div>
+  <div class="ctx-item" onclick="filesCtxPaste()"><span>&#128205;</span>Paste</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" onclick="filesCtxRename()"><span>&#9998;</span>Rename</div>
+  <div class="ctx-item ctx-danger" onclick="filesCtxDelete()"><span>&#128465;</span>Delete</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" onclick="filesNewFolder()"><span>&#128193;</span>New Folder</div>
+  <div class="ctx-item" onclick="filesNewFile()"><span>&#128196;</span>New File</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" onclick="filesCtxProperties()"><span>&#9881;</span>Properties</div>
 </div>
 
 <!-- Settings -->
