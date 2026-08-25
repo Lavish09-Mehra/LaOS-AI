@@ -140,6 +140,7 @@ function openApp(id) {
   closeTray();
   if (id === 'win-files') filesRender();
   updateDockIndicator(id, true);
+  refreshMiniBar();
 }
 function closeApp(id) {
   var win = document.getElementById(id);
@@ -150,6 +151,7 @@ function closeApp(id) {
   minimizedWindows[id] = false;
   windowCount = Math.max(0, windowCount - 1);
   updateDockIndicator(id, false, false);
+  refreshMiniBar();
 }
 function minimizeApp(id) {
   var win = document.getElementById(id);
@@ -160,6 +162,7 @@ function minimizeApp(id) {
   minimizedWindows[id] = true;
   windowCount = Math.max(0, windowCount - 1);
   updateDockIndicator(id, false, true);
+  refreshMiniBar();
 }
 function toggleFullScreen(id) {
   var win = document.getElementById(id);
@@ -315,6 +318,42 @@ function dockClick(app) {
   if (app === 'desktop') { showDesktop(); return; }
   if (openWindows[winId]) { minimizeApp(winId); }
   else { openApp(winId); }
+}
+
+var appMeta = {
+  'win-terminal': { icon: '>', name: 'Terminal' },
+  'win-files':    { icon: '📁', name: 'Files' },
+  'win-browser':  { icon: '🌐', name: 'Browser' },
+  'win-settings': { icon: '⚙️', name: 'Settings' },
+  'win-notes':    { icon: '📝', name: 'Notes' },
+  'win-audit':    { icon: '🛡️', name: 'Audit' },
+  'win-calendar': { icon: '📅', name: 'Calendar' },
+  'win-stream':   { icon: '🖥️', name: 'Stream' },
+  'win-todos':    { icon: '✅', name: 'Todos' }
+};
+
+function refreshMiniBar() {
+  var tray = document.getElementById('minibarTray');
+  if (!tray) return;
+  tray.innerHTML = '';
+  var hasMinimized = false;
+  for (var id in minimizedWindows) {
+    if (minimizedWindows[id]) {
+      hasMinimized = true;
+      var meta = appMeta[id] || { icon: '📄', name: id.replace('win-', '') };
+      var item = document.createElement('div');
+      item.className = 'mini-app';
+      item.innerHTML = '<div class="mini-app-icon">' + meta.icon + '</div><div class="mini-app-name">' + meta.name + '</div>';
+      item.dataset.winId = id;
+      item.addEventListener('click', function() {
+        openApp(this.dataset.winId);
+      });
+      tray.appendChild(item);
+    }
+  }
+  if (!hasMinimized) {
+    tray.innerHTML = '<div class="minibar-empty">No minimized apps</div>';
+  }
 }
 function focusWindow(id) {
   document.querySelectorAll('.window').forEach(function(w) { w.classList.remove('focused'); });
@@ -1682,6 +1721,7 @@ document.addEventListener('DOMContentLoaded', function() {
 loadSettings();
 loadNotes();
 fetchAudit();
+refreshMiniBar();
 
 // ===== JARVIS PANEL =====
 var jarvisOpen = false;
@@ -1701,6 +1741,7 @@ function toggleJarvis(e) {
   jarvisOpen = !jarvisOpen;
   document.getElementById('jarvisPanel').classList.toggle('open', jarvisOpen);
   document.getElementById('dockIsland').classList.toggle('shifted', jarvisOpen);
+  document.getElementById('miniBar').style.display = jarvisOpen ? 'none' : '';
   if (jarvisOpen) {
     startOrbAnimation();
     setTimeout(function() { document.getElementById('jarvisInput').focus(); }, 450);
@@ -1713,6 +1754,7 @@ function closeJarvis() {
   jarvisOpen = false;
   document.getElementById('jarvisPanel').classList.remove('open');
   document.getElementById('dockIsland').classList.remove('shifted');
+  document.getElementById('miniBar').style.display = '';
   stopOrbAnimation();
 }
 
