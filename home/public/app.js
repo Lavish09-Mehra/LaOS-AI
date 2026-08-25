@@ -1700,6 +1700,7 @@ function toggleJarvis(e) {
   if (e) e.stopPropagation();
   jarvisOpen = !jarvisOpen;
   document.getElementById('jarvisPanel').classList.toggle('open', jarvisOpen);
+  document.getElementById('dockIsland').classList.toggle('shifted', jarvisOpen);
   if (jarvisOpen) {
     startOrbAnimation();
     setTimeout(function() { document.getElementById('jarvisInput').focus(); }, 450);
@@ -1711,6 +1712,7 @@ function toggleJarvis(e) {
 function closeJarvis() {
   jarvisOpen = false;
   document.getElementById('jarvisPanel').classList.remove('open');
+  document.getElementById('dockIsland').classList.remove('shifted');
   stopOrbAnimation();
 }
 
