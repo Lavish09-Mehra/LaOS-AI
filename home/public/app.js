@@ -333,26 +333,22 @@ var appMeta = {
 };
 
 function refreshMiniBar() {
-  var tray = document.getElementById('minibarTray');
-  if (!tray) return;
-  tray.innerHTML = '';
-  var hasMinimized = false;
+  var pill = document.getElementById('minibarPill');
+  if (!pill) return;
+  pill.querySelectorAll('.mini-app').forEach(function(el) { el.remove(); });
+  var label = pill.querySelector('.minibar-pill-label');
   for (var id in minimizedWindows) {
     if (minimizedWindows[id]) {
-      hasMinimized = true;
       var meta = appMeta[id] || { icon: '📄', name: id.replace('win-', '') };
-      var item = document.createElement('div');
+      var item = document.createElement('button');
       item.className = 'mini-app';
-      item.innerHTML = '<div class="mini-app-icon">' + meta.icon + '</div><div class="mini-app-name">' + meta.name + '</div>';
+      item.innerHTML = '<div class="mini-app-icon">' + meta.icon + '</div><div class="mini-app-tooltip">' + meta.name + '</div>';
       item.dataset.winId = id;
       item.addEventListener('click', function() {
         openApp(this.dataset.winId);
       });
-      tray.appendChild(item);
+      pill.insertBefore(item, label);
     }
-  }
-  if (!hasMinimized) {
-    tray.innerHTML = '<div class="minibar-empty">No minimized apps</div>';
   }
 }
 function focusWindow(id) {

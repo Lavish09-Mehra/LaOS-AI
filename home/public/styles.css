@@ -853,73 +853,70 @@ html, body {
 
 /* ===== MINIMIZED APPS BAR ===== */
 .minibar {
-  position: fixed; left: 0; bottom: 0;
-  z-index: 1050;
+  position: fixed; bottom: 0; left: 0;
+  z-index: 55;
 }
-.minibar-peek {
-  display: flex; align-items: center; gap: 6px;
-  height: 20px; padding: 0 8px;
-  background: rgba(20, 22, 35, 0.85);
-  backdrop-filter: blur(20px);
+.minibar-pill {
+  display: flex; flex-direction: row; align-items: center;
+  gap: 3px; padding: 0 6px;
+  background: rgba(20, 22, 35, 0.85); backdrop-filter: blur(20px);
   border: 1px solid var(--border); border-bottom: none;
-  border-radius: 0 18px 0 0;
-  color: var(--text-dim); font-size: 10px; font-weight: 500;
-  cursor: pointer; user-select: none;
+  border-radius: 18px 18px 0 0;
+  height: 20px; overflow: hidden;
   transition: height .15s ease-out, padding .15s ease-out;
-  overflow: hidden;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.3);
+  cursor: pointer; user-select: none;
 }
-.minibar:hover .minibar-peek {
-  height: 44px; padding: 6px 10px;
+.minibar:hover .minibar-pill {
+  height: 52px; padding: 6px 8px;
+  box-shadow: 0 -8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(122,162,247,.1);
+  border-color: rgba(122,162,247,.2);
 }
-.minibar-peek-label { letter-spacing: .3px; }
-.minibar-peek-arrow {
+.minibar-pill-label {
+  display: flex; align-items: center; gap: 5px;
+  color: var(--text-dim); font-size: 10px; font-weight: 500;
+  white-space: nowrap; opacity: 0; width: 0; overflow: hidden;
+  transition: opacity .12s ease-out, width .15s ease-out;
+}
+.minibar:hover .minibar-pill-label {
+  opacity: 1; width: auto;
+}
+.minibar-pill-arrow {
   font-size: 9px; transition: transform .25s;
 }
-.minibar:hover .minibar-peek-arrow { transform: rotate(180deg); }
-
-.minibar-tray {
-  display: flex; flex-direction: column; gap: 2px; padding: 6px 8px;
-  background: rgba(20,20,26,.96);
-  border: 1px solid rgba(255,255,255,.08);
-  border-left: none; border-bottom: none;
-  border-radius: 0 12px 12px 0;
-  box-shadow: 8px -4px 30px rgba(0,0,0,.45);
-  backdrop-filter: blur(20px);
-  transform: translateY(100%);
-  opacity: 0;
-  transition: transform .3s cubic-bezier(.22,1,.36,1), opacity .25s ease;
-  pointer-events: none;
-  max-height: 350px; overflow-y: auto;
-  margin-bottom: 20px;
-}
-.minibar:hover .minibar-tray {
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
-}
-.minibar-tray::-webkit-scrollbar { width: 3px; }
-.minibar-tray::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 10px; }
+.minibar:hover .minibar-pill-arrow { transform: rotate(180deg); }
 
 .mini-app {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 10px; border-radius: 8px; cursor: pointer;
-  min-width: 120px; transition: background .15s;
-  color: var(--text); font-size: 11px; font-weight: 500;
-  white-space: nowrap;
+  width: 36px; height: 36px; border: none; background: transparent;
+  color: var(--text-dim); border-radius: 10px; cursor: pointer;
+  display: grid; place-items: center; position: relative;
+  transition: opacity .12s ease-out, transform .15s var(--ease-bounce);
+  opacity: 0; transform: scale(0.5);
+  pointer-events: none;
 }
-.mini-app:hover { background: rgba(255,255,255,.08); }
-.mini-app:active { transform: scale(0.95); }
+.minibar:hover .mini-app {
+  opacity: 1; transform: scale(1); pointer-events: auto;
+}
+.mini-app:hover {
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+  transform: scale(1.15) !important;
+}
+.mini-app:active { transform: scale(0.88) !important; }
 .mini-app-icon {
-  width: 26px; height: 26px; border-radius: 6px;
+  width: 20px; height: 20px;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.06); font-size: 13px;
-  flex-shrink: 0;
+  font-size: 14px;
 }
-.mini-app-name { overflow: hidden; text-overflow: ellipsis; }
-.minibar-empty {
-  color: var(--text-dim); font-size: 10px; padding: 8px 12px;
-  text-align: center; white-space: nowrap;
+.mini-app-tooltip {
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  padding: 4px 8px; border-radius: 6px;
+  background: rgba(30,30,40,.95); color: #fff;
+  font-size: 10px; white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity .15s;
+  box-shadow: 0 4px 12px rgba(0,0,0,.4);
 }
+.mini-app:hover .mini-app-tooltip { opacity: 1; }
 
 /* ===== DESKTOP ===== */
 .desktop {
