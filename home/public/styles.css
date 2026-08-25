@@ -675,6 +675,95 @@ html, body {
   width: 1px; height: 32px; opacity: 1; margin: 0 3px;
 }
 
+/* AI Orb dock button */
+.dock-ai-orb {
+  background: radial-gradient(circle, var(--lav-accent), var(--lav-blue));
+  border-radius: 50%;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 12px rgba(168,85,247,.4);
+  transition: transform .2s var(--ease), box-shadow .2s;
+  margin: 0 4px;
+}
+.dock-ai-orb svg { width: 20px; height: 20px; color: #fff; }
+.dock-ai-orb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 20px rgba(168,85,247,.7);
+}
+
+/* AI Orb overlay (click-away) */
+.ai-orb-overlay {
+  position: fixed; inset: 0; z-index: 998;
+  display: none;
+}
+.ai-orb-overlay.visible { display: block; }
+
+/* AI Orb popup */
+.ai-orb-popup {
+  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px);
+  z-index: 999;
+  width: 340px; height: 220px;
+  background: radial-gradient(circle at 50% 60%, rgba(59,130,246,.12), rgba(10,10,26,.95));
+  border: 1px solid rgba(168,85,247,.25);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  display: none; flex-direction: row;
+  align-items: center; justify-content: center;
+  gap: 16px; padding: 0 20px;
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+  box-shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 30px rgba(168,85,247,.15);
+}
+.ai-orb-popup.visible {
+  display: flex;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Sphere container */
+.ai-orb-sphere {
+  position: relative; width: 160px; height: 160px;
+  flex-shrink: 0;
+}
+.ai-orb-sphere canvas {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+}
+.ai-orb-glow {
+  position: absolute; inset: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168,85,247,.25), transparent 70%);
+  pointer-events: none;
+  animation: orbGlow 3s ease-in-out infinite;
+}
+@keyframes orbGlow {
+  0%, 100% { opacity: .6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Action buttons (left/right of sphere) */
+.ai-orb-action {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all .2s var(--ease);
+  color: var(--text);
+}
+.ai-orb-action:hover {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.2);
+  transform: translateY(-2px);
+}
+.ai-orb-action span {
+  font-size: 10px; font-weight: 600; letter-spacing: .3px;
+  text-transform: uppercase; opacity: .8;
+}
+.ai-orb-chat:hover { border-color: var(--accent); color: var(--accent); }
+.ai-orb-screen:hover { border-color: var(--green); color: var(--green); }
+
 /* ===== DESKTOP ===== */
 .desktop {
   position: fixed; top: 0; left: 0;

@@ -1682,3 +1682,156 @@ document.addEventListener('DOMContentLoaded', function() {
 loadSettings();
 loadNotes();
 fetchAudit();
+
+// ===== AI ORB =====
+var orbVisible = false;
+var orbAnimId = null;
+var orbParticles = [];
+var orbRotationX = 0.3;
+var orbRotationY = 0;
+var orbLastMouse = { x: 0, y: 0 };
+var orbDragging = false;
+var orbSphereRadius = 60;
+var orbCenterX = 100;
+var orbCenterY = 100;
+
+function initOrbParticles() {
+  orbParticles = [];
+  var numParticles = 4000;
+  for (var i = 0; i < numParticles; i++) {
+    var theta = Math.random() * Math.PI * 2;
+    var phi = Math.acos(2 * Math.random() - 1);
+    var r = orbSphereRadius;
+    var x = r * Math.sin(phi) * Math.cos(theta);
+    var y = r * Math.sin(phi) * Math.sin(theta);
+    var z = r * Math.cos(phi);
+    orbParticles.push({ x: x, y: y, z: z, originX: x, originY: y, originZ: z });
+  }
+}
+
+function renderOrbFrame(time) {
+  var canvas = document.getElementById('orbCanvas');
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+
+  ctx.fillStyle = 'rgba(10, 10, 26, 0.15)';
+  ctx.fillRect(0, 0, w, h);
+
+  var mouseSensitivity = 0.006;
+  if (orbDragging) {
+    orbRotationY += (orbLastMouse.x - orbLastMouse.prevX) * mouseSensitivity;
+    orbRotationX += (orbLastMouse.y - orbLastMouse.prevY) * mouseSensitivity;
+  } else {
+    orbRotationY += 0.003;
+  }
+
+  var cosX = Math.cos(orbRotationX), sinX = Math.sin(orbRotationX);
+  var cosY = Math.cos(orbRotationY), sinY = Math.sin(orbRotationY);
+  var perspective = 400;
+
+  var projected = [];
+  for (var i = 0; i < orbParticles.length; i++) {
+    var p = orbParticles[i];
+    var x1 = p.x, y1 = p.y * cosX - p.z * sinX, z1 = p.y * sinX + p.z * cosX;
+    var x2 = x1 * cosY + z1 * sinY, y2 = y1, z2 = -x1 * sinY + z1 * cosY;
+    var dist = Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2);
+    if (dist === 0) dist = 0.01;
+    var scale = perspective / (perspective + z2);
+    var px = orbCenterX + x2 * scale;
+    var py = orbCenterY + y2 * scale;
+    var fade = Math.max(0, Math.min(1, 1 - dist / orbSphereRadius));
+    var edgeFade = Math.max(0, 1 - (dist / orbSphereRadius) * 1.8);
+    var brightness = 0.4 + 0.6 * fade;
+    var alpha = Math.max(0.08, edgeFade * 0.9);
+    var size = Math.max(0.4, 1.4 * scale * fade);
+    projected.push({ x: px, y: py, z: z2, size: size, alpha: alpha, brightness: brightness, dist: dist });
+  }
+
+  projected.sort(function(a, b) { return b.z - a.z; });
+  for (var j = 0; j < projected.length; j++) {
+    var pt = projected[j];
+    var r = Math.round(80 + 175 * pt.brightness);
+    var g = Math.round(60 + 100 * pt.brightness);
+    var b = Math.round(180 + 75 * pt.brightness);
+    ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + pt.alpha + ')';
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // dark center hole
+  var centerGrad = ctx.createRadialGradient(orbCenterX, orbCenterY, 0, orbCenterX, orbCenterY, orbSphereRadius * 0.45);
+  centerGrad.addColorStop(0, 'rgba(10,10,26,1)');
+  centerGrad.addColorStop(0.7, 'rgba(10,10,26,0.7)');
+  centerGrad.addColorStop(1, 'rgba(10,10,26,0)');
+  ctx.fillStyle = centerGrad;
+  ctx.beginPath();
+  ctx.arc(orbCenterX, orbCenterY, orbSphereRadius * 0.45, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (orbVisible) {
+    orbAnimId = requestAnimationFrame(renderOrbFrame);
+  }
+}
+
+function startOrbAnimation() {
+  if (orbAnimId) cancelAnimationFrame(orbAnimId);
+  initOrbParticles();
+  orbVisible = true;
+  orbAnimId = requestAnimationFrame(renderOrbFrame);
+  var canvas = document.getElementById('orbCanvas');
+  if (canvas) {
+    canvas.addEventListener('mousedown', function(e) {
+      orbDragging = true;
+      orbLastMouse = { x: e.clientX, y: e.clientY, prevX: e.clientX, prevY: e.clientY };
+    });
+    canvas.addEventListener('mousemove', function(e) {
+      if (orbDragging) {
+        orbLastMouse.prevX = orbLastMouse.x;
+        orbLastMouse.prevY = orbLastMouse.y;
+        orbLastMouse.x = e.clientX;
+        orbLastMouse.y = e.clientY;
+      }
+    });
+    canvas.addEventListener('mouseup', function() { orbDragging = false; });
+    canvas.addEventListener('mouseleave', function() { orbDragging = false; });
+  }
+}
+
+function stopOrbAnimation() {
+  orbVisible = false;
+  if (orbAnimId) { cancelAnimationFrame(orbAnimId); orbAnimId = null; }
+}
+
+function toggleAiOrb(e) {
+  if (e) e.stopPropagation();
+  var popup = document.getElementById('aiOrbPopup');
+  var overlay = document.getElementById('aiOrbOverlay');
+  if (popup.classList.contains('visible')) {
+    closeAiOrb();
+  } else {
+    popup.classList.add('visible');
+    overlay.classList.add('visible');
+    startOrbAnimation();
+  }
+}
+
+function closeAiOrb() {
+  var popup = document.getElementById('aiOrbPopup');
+  var overlay = document.getElementById('aiOrbOverlay');
+  popup.classList.remove('visible');
+  overlay.classList.remove('visible');
+  stopOrbAnimation();
+}
+
+function aiOrbChat() {
+  closeAiOrb();
+  var panel = document.getElementById('ai-panel');
+  panel.classList.add('visible');
+}
+
+function aiOrbScreen() {
+  closeAiOrb();
+  openApp('win-stream');
+}

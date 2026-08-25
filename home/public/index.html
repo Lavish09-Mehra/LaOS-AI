@@ -203,8 +203,28 @@
     <button class="dock-item" data-app="audit" title="Audit Log" onclick="dockClick('audit')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
     </button>
-    <button class="dock-item" data-app="stream" title="Screen Stream" onclick="dockClick('stream')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><circle cx="12" cy="10" r="3"/></svg>
+    <div class="dock-sep"></div>
+    <button class="dock-item dock-ai-orb" data-app="ai-orb" title="AI Assistant" onclick="toggleAiOrb(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ===== AI ORB POPUP ===== -->
+<div class="ai-orb-overlay" id="aiOrbOverlay" onclick="closeAiOrb()"></div>
+<div class="ai-orb-popup" id="aiOrbPopup">
+  <div class="ai-orb-content">
+    <button class="ai-orb-action ai-orb-chat" onclick="aiOrbChat()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>Chat</span>
+    </button>
+    <div class="ai-orb-sphere">
+      <canvas id="orbCanvas" width="200" height="200"></canvas>
+      <div class="ai-orb-glow"></div>
+    </div>
+    <button class="ai-orb-action ai-orb-screen" onclick="aiOrbScreen()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+      <span>Screen</span>
     </button>
   </div>
 </div>
