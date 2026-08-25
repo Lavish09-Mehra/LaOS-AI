@@ -1683,155 +1683,127 @@ loadSettings();
 loadNotes();
 fetchAudit();
 
-// ===== AI ORB =====
-var orbVisible = false;
-var orbAnimId = null;
-var orbParticles = [];
-var orbRotationX = 0.3;
-var orbRotationY = 0;
-var orbLastMouse = { x: 0, y: 0 };
-var orbDragging = false;
-var orbSphereRadius = 60;
-var orbCenterX = 100;
-var orbCenterY = 100;
+// ===== JARVIS CHAT =====
+var jarvisOpen = false;
 
-function initOrbParticles() {
-  orbParticles = [];
-  var numParticles = 4000;
-  for (var i = 0; i < numParticles; i++) {
-    var theta = Math.random() * Math.PI * 2;
-    var phi = Math.acos(2 * Math.random() - 1);
-    var r = orbSphereRadius;
-    var x = r * Math.sin(phi) * Math.cos(theta);
-    var y = r * Math.sin(phi) * Math.sin(theta);
-    var z = r * Math.cos(phi);
-    orbParticles.push({ x: x, y: y, z: z, originX: x, originY: y, originZ: z });
-  }
-}
-
-function renderOrbFrame(time) {
-  var canvas = document.getElementById('orbCanvas');
-  if (!canvas || !canvas.getContext) return;
-  var ctx = canvas.getContext('2d');
-  var w = canvas.width, h = canvas.height;
-
-  ctx.fillStyle = 'rgba(10, 10, 26, 0.15)';
-  ctx.fillRect(0, 0, w, h);
-
-  var mouseSensitivity = 0.006;
-  if (orbDragging) {
-    orbRotationY += (orbLastMouse.x - orbLastMouse.prevX) * mouseSensitivity;
-    orbRotationX += (orbLastMouse.y - orbLastMouse.prevY) * mouseSensitivity;
-  } else {
-    orbRotationY += 0.003;
-  }
-
-  var cosX = Math.cos(orbRotationX), sinX = Math.sin(orbRotationX);
-  var cosY = Math.cos(orbRotationY), sinY = Math.sin(orbRotationY);
-  var perspective = 400;
-
-  var projected = [];
-  for (var i = 0; i < orbParticles.length; i++) {
-    var p = orbParticles[i];
-    var x1 = p.x, y1 = p.y * cosX - p.z * sinX, z1 = p.y * sinX + p.z * cosX;
-    var x2 = x1 * cosY + z1 * sinY, y2 = y1, z2 = -x1 * sinY + z1 * cosY;
-    var dist = Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2);
-    if (dist === 0) dist = 0.01;
-    var scale = perspective / (perspective + z2);
-    var px = orbCenterX + x2 * scale;
-    var py = orbCenterY + y2 * scale;
-    var fade = Math.max(0, Math.min(1, 1 - dist / orbSphereRadius));
-    var edgeFade = Math.max(0, 1 - (dist / orbSphereRadius) * 1.8);
-    var brightness = 0.4 + 0.6 * fade;
-    var alpha = Math.max(0.08, edgeFade * 0.9);
-    var size = Math.max(0.4, 1.4 * scale * fade);
-    projected.push({ x: px, y: py, z: z2, size: size, alpha: alpha, brightness: brightness, dist: dist });
-  }
-
-  projected.sort(function(a, b) { return b.z - a.z; });
-  for (var j = 0; j < projected.length; j++) {
-    var pt = projected[j];
-    var r = Math.round(80 + 175 * pt.brightness);
-    var g = Math.round(60 + 100 * pt.brightness);
-    var b = Math.round(180 + 75 * pt.brightness);
-    ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + pt.alpha + ')';
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // dark center hole
-  var centerGrad = ctx.createRadialGradient(orbCenterX, orbCenterY, 0, orbCenterX, orbCenterY, orbSphereRadius * 0.45);
-  centerGrad.addColorStop(0, 'rgba(10,10,26,1)');
-  centerGrad.addColorStop(0.7, 'rgba(10,10,26,0.7)');
-  centerGrad.addColorStop(1, 'rgba(10,10,26,0)');
-  ctx.fillStyle = centerGrad;
-  ctx.beginPath();
-  ctx.arc(orbCenterX, orbCenterY, orbSphereRadius * 0.45, 0, Math.PI * 2);
-  ctx.fill();
-
-  if (orbVisible) {
-    orbAnimId = requestAnimationFrame(renderOrbFrame);
-  }
-}
-
-function startOrbAnimation() {
-  if (orbAnimId) cancelAnimationFrame(orbAnimId);
-  initOrbParticles();
-  orbVisible = true;
-  orbAnimId = requestAnimationFrame(renderOrbFrame);
-  var canvas = document.getElementById('orbCanvas');
-  if (canvas) {
-    canvas.addEventListener('mousedown', function(e) {
-      orbDragging = true;
-      orbLastMouse = { x: e.clientX, y: e.clientY, prevX: e.clientX, prevY: e.clientY };
-    });
-    canvas.addEventListener('mousemove', function(e) {
-      if (orbDragging) {
-        orbLastMouse.prevX = orbLastMouse.x;
-        orbLastMouse.prevY = orbLastMouse.y;
-        orbLastMouse.x = e.clientX;
-        orbLastMouse.y = e.clientY;
-      }
-    });
-    canvas.addEventListener('mouseup', function() { orbDragging = false; });
-    canvas.addEventListener('mouseleave', function() { orbDragging = false; });
-  }
-}
-
-function stopOrbAnimation() {
-  orbVisible = false;
-  if (orbAnimId) { cancelAnimationFrame(orbAnimId); orbAnimId = null; }
-}
-
-function toggleAiOrb(e) {
+function toggleJarvis(e) {
   if (e) e.stopPropagation();
-  var popup = document.getElementById('aiOrbPopup');
-  var overlay = document.getElementById('aiOrbOverlay');
-  if (popup.classList.contains('visible')) {
-    closeAiOrb();
-  } else {
-    popup.classList.add('visible');
-    overlay.classList.add('visible');
-    startOrbAnimation();
+  var panel = document.getElementById('jarvisPanel');
+  jarvisOpen = !jarvisOpen;
+  panel.classList.toggle('open', jarvisOpen);
+  if (jarvisOpen) {
+    var chat = document.getElementById('jarvisChat');
+    chat.scrollTop = chat.scrollHeight;
+    setTimeout(function() { document.getElementById('jarvisInput').focus(); }, 400);
   }
 }
 
-function closeAiOrb() {
-  var popup = document.getElementById('aiOrbPopup');
-  var overlay = document.getElementById('aiOrbOverlay');
-  popup.classList.remove('visible');
-  overlay.classList.remove('visible');
-  stopOrbAnimation();
+function closeJarvis() {
+  jarvisOpen = false;
+  document.getElementById('jarvisPanel').classList.remove('open');
 }
 
-function aiOrbChat() {
-  closeAiOrb();
-  var panel = document.getElementById('ai-panel');
-  panel.classList.add('visible');
+function sendJarvisMessage() {
+  var input = document.getElementById('jarvisInput');
+  var text = input.value.trim();
+  if (!text) return;
+
+  var chat = document.getElementById('jarvisChat');
+
+  // Add user message
+  var userMsg = document.createElement('div');
+  userMsg.className = 'jarvis-message jarvis-sent';
+  userMsg.innerHTML = '<div class="jarvis-bubble">' + escHtml(text) + '</div><div class="jarvis-time">Just now';
+  chat.appendChild(userMsg);
+
+  input.value = '';
+  chat.scrollTop = chat.scrollHeight;
+
+  // Send to AI
+  if (typeof socket !== 'undefined' && socket.connected) {
+    var sessionId = 'jarvis-' + Date.now();
+    socket.emit('chat', { text: text, session_id: sessionId });
+
+    // Show thinking
+    var thinkMsg = document.createElement('div');
+    thinkMsg.className = 'jarvis-message jarvis-received';
+    thinkMsg.innerHTML = '<div class="jarvis-bubble" style="opacity:.6">Thinking...</div><div class="jarvis-time">Just now';
+    chat.appendChild(thinkMsg);
+    chat.scrollTop = chat.scrollHeight;
+
+    socket.once('chat:' + sessionId, function(data) {
+      thinkMsg.querySelector('.jarvis-bubble').textContent = data.response || data.error || 'No response.';
+      chat.scrollTop = chat.scrollHeight;
+    });
+
+    setTimeout(function() {
+      if (thinkMsg.parentNode) {
+        thinkMsg.querySelector('.jarvis-bubble').textContent = 'Response timed out.';
+      }
+    }, 15000);
+  } else {
+    var err = document.createElement('div');
+    err.className = 'jarvis-message jarvis-received';
+    err.innerHTML = '<div class="jarvis-bubble" style="color:#f7768e">Not connected to AI server.</div><div class="jarvis-time">Just now';
+    chat.appendChild(err);
+    chat.scrollTop = chat.scrollHeight;
+  }
 }
 
-function aiOrbScreen() {
-  closeAiOrb();
-  openApp('win-stream');
+// ===== SCREEN SHARE =====
+var ssOpen = false;
+var ssStreamInterval = null;
+
+function toggleScreenShare(e) {
+  if (e) e.stopPropagation();
+  ssOpen = !ssOpen;
+  document.getElementById('screenSharePanel').classList.toggle('open', ssOpen);
+}
+
+function closeScreenShare() {
+  ssOpen = false;
+  document.getElementById('screenSharePanel').classList.remove('open');
+}
+
+function startScreenShare() {
+  fetch('/api/stream/start', { method: 'POST' }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.ok) {
+      document.getElementById('ssStartBtn').disabled = true;
+      document.getElementById('ssStopBtn').disabled = false;
+      document.getElementById('ssAnalyzeBtn').disabled = false;
+      document.getElementById('ssStatus').textContent = 'Streaming...';
+      ssStreamInterval = setInterval(fetchSSFrame, 1000);
+    }
+  }).catch(function() {
+    document.getElementById('ssStatus').textContent = 'Connection failed';
+  });
+}
+
+function stopScreenShare() {
+  fetch('/api/stream/stop', { method: 'POST' }).then(function(r) { return r.json(); }).then(function() {
+    if (ssStreamInterval) { clearInterval(ssStreamInterval); ssStreamInterval = null; }
+    document.getElementById('ssStartBtn').disabled = false;
+    document.getElementById('ssStopBtn').disabled = true;
+    document.getElementById('ssAnalyzeBtn').disabled = true;
+    document.getElementById('ssStatus').textContent = 'Stopped';
+    document.getElementById('ssPreview').innerHTML = '<span>No active stream</span>';
+  });
+}
+
+function fetchSSFrame() {
+  fetch('/api/stream/frame').then(function(r) { return r.json(); }).then(function(d) {
+    if (d.image) {
+      document.getElementById('ssPreview').innerHTML = '<img src="data:image/jpeg;base64,' + d.image + '">';
+      document.getElementById('ssStatus').textContent = 'Streaming - ' + new Date().toLocaleTimeString();
+    }
+  }).catch(function() {});
+}
+
+function analyzeScreen() {
+  document.getElementById('ssStatus').textContent = 'Analyzing...';
+  fetch('/api/stream/analyze', { method: 'POST' }).then(function(r) { return r.json(); }).then(function(d) {
+    document.getElementById('ssStatus').textContent = d.analysis ? 'Analysis complete' : 'No analysis';
+  }).catch(function() {
+    document.getElementById('ssStatus').textContent = 'Analysis failed';
+  });
 }

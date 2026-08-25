@@ -204,29 +204,67 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
     </button>
     <div class="dock-sep"></div>
-    <button class="dock-item dock-ai-orb" data-app="ai-orb" title="AI Assistant" onclick="toggleAiOrb(event)">
+    <button class="dock-item dock-ai-orb" data-app="ai-orb" title="JARVIS" onclick="toggleJarvis(event)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
     </button>
   </div>
 </div>
 
-<!-- ===== AI ORB POPUP ===== -->
-<div class="ai-orb-overlay" id="aiOrbOverlay" onclick="closeAiOrb()"></div>
-<div class="ai-orb-popup" id="aiOrbPopup">
-  <div class="ai-orb-content">
-    <button class="ai-orb-action ai-orb-chat" onclick="aiOrbChat()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      <span>Chat</span>
-    </button>
-    <div class="ai-orb-sphere">
-      <canvas id="orbCanvas" width="200" height="200"></canvas>
-      <div class="ai-orb-glow"></div>
+<!-- ===== JARVIS CHAT PANEL ===== -->
+<div class="jarvis" id="jarvisPanel">
+  <div class="jarvis-window">
+    <div class="jarvis-header">
+      <div class="jarvis-avatar">J</div>
+      <div class="jarvis-person">
+        <div class="jarvis-person-name">JARVIS</div>
+        <div class="jarvis-person-status">Online</div>
+      </div>
+      <button class="jarvis-close" onclick="closeJarvis()">×</button>
     </div>
-    <button class="ai-orb-action ai-orb-screen" onclick="aiOrbScreen()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
-      <span>Screen</span>
-    </button>
+    <div class="jarvis-chat" id="jarvisChat">
+      <div class="jarvis-date">Today</div>
+      <div class="jarvis-message jarvis-received">
+        <div class="jarvis-bubble">Hello! I'm JARVIS, your AI assistant. How can I help you?</div>
+        <div class="jarvis-time">Just now</div>
+      </div>
+    </div>
+    <div class="jarvis-composer">
+      <input class="jarvis-input" id="jarvisInput" placeholder="Ask JARVIS anything..." onkeydown="if(event.key==='Enter')sendJarvisMessage()">
+      <button class="jarvis-send" onclick="sendJarvisMessage()">➤</button>
+    </div>
   </div>
+</div>
+<div class="jarvis-bar" id="jarvisBar" onclick="toggleJarvis()">
+  <div class="jarvis-bar-icon">💬</div>
+  <div class="jarvis-bar-title">JARVIS</div>
+  <div class="jarvis-bar-arrow" id="jarvisArrow">↑</div>
+</div>
+
+<!-- ===== SCREEN SHARE PANEL ===== -->
+<div class="screenshare" id="screenSharePanel">
+  <div class="screenshare-window">
+    <div class="screenshare-header">
+      <div class="screenshare-icon">🖥️</div>
+      <div class="screenshare-person">
+        <div class="screenshare-person-name">Screen Share</div>
+        <div class="screenshare-person-status" id="ssStatus">Ready</div>
+      </div>
+      <button class="screenshare-close" onclick="closeScreenShare()">×</button>
+    </div>
+    <div class="screenshare-preview" id="ssPreview">
+      <span>No active stream</span>
+    </div>
+    <div class="screenshare-controls">
+      <button class="screenshare-btn screenshare-start" id="ssStartBtn" onclick="startScreenShare()">Start</button>
+      <button class="screenshare-btn screenshare-stop" id="ssStopBtn" onclick="stopScreenShare()" disabled>Stop</button>
+      <button class="screenshare-btn screenshare-analyze" id="ssAnalyzeBtn" onclick="analyzeScreen()" disabled>Analyze</button>
+    </div>
+  </div>
+</div>
+<div class="screenshare-bar" id="screenShareBar" onclick="toggleScreenShare()">
+  <div class="screenshare-bar-icon">🖥️</div>
+  <div class="screenshare-bar-title">Screen Share</div>
+  <div class="screenshare-bar-arrow" id="ssArrow">↑</div>
 </div>
 
 <!-- ===== DESKTOP AREA ===== -->
