@@ -615,7 +615,7 @@ html, body {
 /* ===== BOTTOM DOCK — Dynamic Island ===== */
 .dock-island {
   position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-  z-index: 60;
+  z-index: 50;
 }
 .dock-pill {
   display: flex; flex-direction: row; align-items: center;
@@ -687,7 +687,7 @@ html, body {
   background-color: #1a3a2a;
 }
 .desktop-icons {
-  position: absolute; top: 20px; left: 20px;
+  position: absolute; top: 60px; left: 20px;
   display: flex; flex-direction: column; gap: 4px;
 }
 .desktop-icon {
