@@ -335,13 +335,13 @@ dockIsland.addEventListener('mouseleave', function() {
   clearTimeout(dockTimer);
   dockTimer = setTimeout(function() {
     dockIsland.classList.remove('expanded');
-  }, 5000);
+  }, 150);
 });
 dockIsland.addEventListener('click', function(e) {
   if (!e.target.closest('.dock-item')) {
     clearTimeout(dockTimer);
     dockIsland.classList.add('expanded');
-    dockTimer = setTimeout(function() { dockIsland.classList.remove('expanded'); }, 5000);
+    dockTimer = setTimeout(function() { dockIsland.classList.remove('expanded'); }, 3000);
   }
 });
 

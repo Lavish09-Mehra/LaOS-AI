@@ -614,7 +614,7 @@ html, body {
 
 /* ===== BOTTOM DOCK — Dynamic Island ===== */
 .dock-island {
-  position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
   z-index: 50;
 }
 .dock-pill {
@@ -623,9 +623,8 @@ html, body {
   background: rgba(20, 22, 35, 0.85); backdrop-filter: blur(20px);
   border: 1px solid var(--border); border-bottom: none;
   border-radius: 18px 18px 0 0;
-  height: 24px; overflow: hidden;
-  transition: height .35s var(--ease), padding .35s var(--ease),
-              box-shadow .35s var(--ease), border-color .35s var(--ease);
+  height: 20px; overflow: hidden;
+  transition: height .15s ease-out, padding .15s ease-out;
   box-shadow: 0 -4px 20px rgba(0,0,0,.3);
 }
 .dock-island:hover .dock-pill,
@@ -638,7 +637,7 @@ html, body {
   width: 36px; height: 36px; border: none; background: transparent;
   color: var(--text-dim); border-radius: 10px; cursor: pointer;
   display: grid; place-items: center; position: relative;
-  transition: all .25s var(--ease-bounce);
+  transition: opacity .12s ease-out, transform .15s var(--ease-bounce);
   opacity: 0; transform: scale(0.5);
   pointer-events: none;
 }
@@ -669,7 +668,7 @@ html, body {
 .dock-sep {
   height: 24px; width: 0; border: none;
   border-left: 1px solid var(--border); margin: 0;
-  opacity: 0; transition: all .3s var(--ease);
+  opacity: 0; transition: all .15s ease-out;
 }
 .dock-island:hover .dock-sep,
 .dock-island.expanded .dock-sep {
