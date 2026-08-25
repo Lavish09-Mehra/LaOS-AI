@@ -37,22 +37,23 @@
 </div>
 
 <!-- ===== TOP BAR ===== -->
-<!-- ===== DYNAMIC ISLAND ===== -->
-<div class="dynamic-island" id="dynamicIsland">
-  <div class="di-left">
-    <button class="di-btn di-activities" id="activitiesBtn" title="Activities">Activities</button>
-    <div class="di-workspaces" id="workspaceIndicator">
-      <div class="di-ws-pill active" data-ws="0" onclick="switchWorkspace(0)"></div>
+<!-- ===== TOP BAR — Dynamic Island Style ===== -->
+<div class="di-topbar" id="diTopbar">
+  <div class="di-topbar-left">
+    <button class="di-btn-pill di-activities" id="activitiesBtn">Activities</button>
+    <div class="di-btn-pill di-workspace-bar" id="workspaceIndicator">
+      <div class="di-ws-dot active" data-ws="0" onclick="switchWorkspace(0)"></div>
     </div>
   </div>
-  <div class="di-center">
-    <button class="di-clock" id="clockBtn">
+  <div class="di-topbar-center">
+    <button class="di-btn-pill di-clock-pill" id="clockBtn">
       <span id="topClock">--:-- --</span>
+      <span class="di-date-sep">|</span>
       <span class="di-date" id="topDate">---</span>
     </button>
   </div>
-  <div class="di-right">
-    <div class="di-tray" id="systemTray">
+  <div class="di-topbar-right">
+    <div class="di-btn-pill di-tray-pill" id="systemTray">
       <span class="di-tray-icon" id="trayVolume" title="Volume">&#128266;</span>
       <span class="di-tray-icon" id="trayNetwork" title="Network">&#128246;</span>
       <span class="di-tray-icon" id="trayBattery" title="Battery">&#128267;</span>

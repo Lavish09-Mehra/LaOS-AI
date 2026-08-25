@@ -142,7 +142,7 @@ function closeApp(id) {
   var win = document.getElementById(id);
   win.classList.add('closing');
   win.classList.remove('focused');
-  setTimeout(function() { win.classList.remove('open', 'closing'); win.style.display = 'none'; }, 200);
+  setTimeout(function() { win.classList.remove('open', 'closing'); win.style.display = 'none'; }, 900);
   openWindows[id] = false;
   minimizedWindows[id] = false;
   windowCount = Math.max(0, windowCount - 1);
@@ -152,7 +152,7 @@ function minimizeApp(id) {
   var win = document.getElementById(id);
   win.classList.add('closing');
   win.classList.remove('focused');
-  setTimeout(function() { win.classList.remove('open', 'closing'); win.style.display = 'none'; }, 200);
+  setTimeout(function() { win.classList.remove('open', 'closing'); win.style.display = 'none'; }, 900);
   openWindows[id] = false;
   minimizedWindows[id] = true;
   windowCount = Math.max(0, windowCount - 1);
@@ -182,7 +182,7 @@ function showDesktop() {
   document.querySelectorAll('.window.open').forEach(function(w) {
     w.classList.add('closing');
     w.classList.remove('focused');
-    setTimeout(function() { w.classList.remove('open', 'closing'); w.style.display = 'none'; }, 200);
+    setTimeout(function() { w.classList.remove('open', 'closing'); w.style.display = 'none'; }, 900);
     openWindows[w.id] = false;
     minimizedWindows[w.id] = false;
   });
@@ -216,7 +216,7 @@ function switchWorkspace(idx, direction) {
   (workspaceWindows[prevWs] || []).forEach(function(wid) {
     var w = document.getElementById(wid);
     if (w) { w.classList.add('closing'); w.classList.remove('focused');
-      setTimeout(function() { w.classList.remove('open', 'closing'); w.style.display = 'none'; }, 200);
+      setTimeout(function() { w.classList.remove('open', 'closing'); w.style.display = 'none'; }, 900);
       openWindows[wid] = false;
       minimizedWindows[wid] = false;
     }
