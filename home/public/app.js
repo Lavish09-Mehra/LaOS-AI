@@ -921,17 +921,11 @@ function tick() {
   var h12 = h % 12 || 12;
   var m = now.getMinutes().toString().padStart(2, '0');
   var s = now.getSeconds().toString().padStart(2, '0');
-  var topTime = h12 + ':' + m + ' ' + ampm;
-  document.getElementById('topClock').textContent = topTime;
+  document.getElementById('topClock').textContent = h12 + ':' + m + ' ' + ampm;
 
-  var tmClock = document.getElementById('tmClock');
-  if (tmClock) tmClock.textContent = h12 + ':' + m + ':' + s + ' ' + ampm;
-
-  var tmCal = document.getElementById('tmCalMini');
-  if (tmCal) {
-    var dayName = calDayShort[now.getDay()];
-    var monthName = calMonthShort[now.getMonth()];
-    tmCal.textContent = dayName + ', ' + monthName + ' ' + now.getDate();
+  var dateEl = document.getElementById('topDate');
+  if (dateEl) {
+    dateEl.textContent = calDayShort[now.getDay()] + ', ' + calMonthShort[now.getMonth()] + ' ' + now.getDate();
   }
 
   document.getElementById('trayBatteryPct').textContent = '--';

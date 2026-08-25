@@ -37,33 +37,28 @@
 </div>
 
 <!-- ===== TOP BAR ===== -->
-<div class="topbar">
-  <div class="topbar-left">
-    <button class="activities-btn" id="activitiesBtn">Activities</button>
-    <div class="workspace-indicator" id="workspaceIndicator">
-      <div class="workspace-pill active" data-ws="0" onclick="switchWorkspace(0)"></div>
+<!-- ===== DYNAMIC ISLAND ===== -->
+<div class="dynamic-island" id="dynamicIsland">
+  <div class="di-left">
+    <button class="di-btn di-activities" id="activitiesBtn" title="Activities">Activities</button>
+    <div class="di-workspaces" id="workspaceIndicator">
+      <div class="di-ws-pill active" data-ws="0" onclick="switchWorkspace(0)"></div>
     </div>
   </div>
-  <div class="topbar-center">
-    <button class="clock-btn" id="clockBtn">
-      <span id="topClock">--:--</span>
+  <div class="di-center">
+    <button class="di-clock" id="clockBtn">
+      <span id="topClock">--:-- --</span>
+      <span class="di-date" id="topDate">---</span>
     </button>
   </div>
-  <div class="topbar-right">
-    <div class="system-tray" id="systemTray">
-      <span class="tray-icon" id="trayVolume" title="Volume">&#128266;</span>
-      <span class="tray-icon" id="trayNetwork" title="Network">&#128246;</span>
-      <span class="tray-icon" id="trayBattery" title="Battery">&#128267;</span>
-      <span class="tray-icon tray-power" id="trayPower" title="Power">&#9211;</span>
+  <div class="di-right">
+    <div class="di-tray" id="systemTray">
+      <span class="di-tray-icon" id="trayVolume" title="Volume">&#128266;</span>
+      <span class="di-tray-icon" id="trayNetwork" title="Network">&#128246;</span>
+      <span class="di-tray-icon" id="trayBattery" title="Battery">&#128267;</span>
+      <span class="di-tray-icon di-power" id="trayPower" title="Power">&#9211;</span>
     </div>
   </div>
-</div>
-
-<!-- ===== BOTTOM TASK MANAGER ===== -->
-<div class="task-manager-bar" id="taskManagerBar">
-  <div class="tm-clock" id="tmClock">--:-- --</div>
-  <div class="tm-divider"></div>
-  <div class="tm-cal-mini" id="tmCalMini"></div>
 </div>
 
 <!-- ===== SYSTEM TRAY DROPDOWN ===== -->
