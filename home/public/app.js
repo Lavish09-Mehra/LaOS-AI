@@ -936,9 +936,6 @@ function tick() {
   }
 
   document.getElementById('trayBatteryPct').textContent = '--';
-
-  var wtbClock = document.getElementById('wtbClock');
-  if (wtbClock) wtbClock.textContent = h12 + ':' + m + ' ' + ampm;
 }
 setInterval(tick, 1000); tick();
 
