@@ -1683,87 +1683,187 @@ loadSettings();
 loadNotes();
 fetchAudit();
 
-// ===== JARVIS CHAT =====
+// ===== JARVIS PANEL =====
 var jarvisOpen = false;
+var orbVisible = false;
+var orbAnimId = null;
+var orbParticles = [];
+var orbRotationX = 0.3;
+var orbRotationY = 0;
+var orbDragging = false;
+var orbLastMouse = { x: 0, y: 0, prevX: 0, prevY: 0 };
+var orbRadius = 70;
+var orbCX = 100;
+var orbCY = 100;
 
 function toggleJarvis(e) {
   if (e) e.stopPropagation();
-  var panel = document.getElementById('jarvisPanel');
   jarvisOpen = !jarvisOpen;
-  panel.classList.toggle('open', jarvisOpen);
+  document.getElementById('jarvisPanel').classList.toggle('open', jarvisOpen);
   if (jarvisOpen) {
-    var chat = document.getElementById('jarvisChat');
-    chat.scrollTop = chat.scrollHeight;
-    setTimeout(function() { document.getElementById('jarvisInput').focus(); }, 400);
+    startOrbAnimation();
+    setTimeout(function() { document.getElementById('jarvisInput').focus(); }, 450);
+  } else {
+    stopOrbAnimation();
   }
 }
 
 function closeJarvis() {
   jarvisOpen = false;
   document.getElementById('jarvisPanel').classList.remove('open');
+  stopOrbAnimation();
 }
 
+// Orb particle animation
+function initOrbParticles() {
+  orbParticles = [];
+  for (var i = 0; i < 3000; i++) {
+    var theta = Math.random() * Math.PI * 2;
+    var phi = Math.acos(2 * Math.random() - 1);
+    orbParticles.push({
+      x: orbRadius * Math.sin(phi) * Math.cos(theta),
+      y: orbRadius * Math.sin(phi) * Math.sin(theta),
+      z: orbRadius * Math.cos(phi)
+    });
+  }
+}
+
+function renderOrb() {
+  var canvas = document.getElementById('orbCanvas');
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+
+  ctx.fillStyle = 'rgba(14,14,18,0.18)';
+  ctx.fillRect(0, 0, w, h);
+
+  if (orbDragging) {
+    orbRotationY += (orbLastMouse.x - orbLastMouse.prevX) * 0.006;
+    orbRotationX += (orbLastMouse.y - orbLastMouse.prevY) * 0.006;
+  } else {
+    orbRotationY += 0.004;
+  }
+
+  var cosX = Math.cos(orbRotationX), sinX = Math.sin(orbRotationX);
+  var cosY = Math.cos(orbRotationY), sinY = Math.sin(orbRotationY);
+  var persp = 350;
+
+  var proj = [];
+  for (var i = 0; i < orbParticles.length; i++) {
+    var p = orbParticles[i];
+    var y1 = p.y * cosX - p.z * sinX, z1 = p.y * sinX + p.z * cosX;
+    var x2 = p.x * cosY + z1 * sinY, z2 = -p.x * sinY + z1 * cosY;
+    var dist = Math.sqrt(x2 * x2 + y1 * y1 + z2 * z2);
+    if (dist === 0) dist = 0.01;
+    var sc = persp / (persp + z2);
+    var fade = Math.max(0, 1 - dist / orbRadius);
+    var edge = Math.max(0, 1 - (dist / orbRadius) * 1.8);
+    proj.push({
+      x: orbCX + x2 * sc, y: orbCY + y1 * sc, z: z2,
+      size: Math.max(0.3, 1.3 * sc * fade),
+      alpha: Math.max(0.06, edge * 0.85),
+      bright: 0.4 + 0.6 * fade
+    });
+  }
+
+  proj.sort(function(a, b) { return b.z - a.z; });
+  for (var j = 0; j < proj.length; j++) {
+    var pt = proj[j];
+    var r = Math.round(70 + 180 * pt.bright);
+    var g = Math.round(50 + 90 * pt.bright);
+    var bl = Math.round(170 + 85 * pt.bright);
+    ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + bl + ',' + pt.alpha + ')';
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // center dark hole
+  var cg = ctx.createRadialGradient(orbCX, orbCY, 0, orbCX, orbCY, orbRadius * 0.42);
+  cg.addColorStop(0, 'rgba(14,14,18,1)');
+  cg.addColorStop(0.7, 'rgba(14,14,18,0.7)');
+  cg.addColorStop(1, 'rgba(14,14,18,0)');
+  ctx.fillStyle = cg;
+  ctx.beginPath();
+  ctx.arc(orbCX, orbCY, orbRadius * 0.42, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (orbVisible) orbAnimId = requestAnimationFrame(renderOrb);
+}
+
+function startOrbAnimation() {
+  if (orbAnimId) cancelAnimationFrame(orbAnimId);
+  initOrbParticles();
+  orbVisible = true;
+  orbAnimId = requestAnimationFrame(renderOrb);
+
+  var canvas = document.getElementById('orbCanvas');
+  if (canvas && !canvas._bound) {
+    canvas._bound = true;
+    canvas.addEventListener('mousedown', function(e) {
+      orbDragging = true;
+      orbLastMouse = { x: e.clientX, y: e.clientY, prevX: e.clientX, prevY: e.clientY };
+    });
+    canvas.addEventListener('mousemove', function(e) {
+      if (orbDragging) {
+        orbLastMouse.prevX = orbLastMouse.x;
+        orbLastMouse.prevY = orbLastMouse.y;
+        orbLastMouse.x = e.clientX;
+        orbLastMouse.y = e.clientY;
+      }
+    });
+    canvas.addEventListener('mouseup', function() { orbDragging = false; });
+    canvas.addEventListener('mouseleave', function() { orbDragging = false; });
+  }
+}
+
+function stopOrbAnimation() {
+  orbVisible = false;
+  if (orbAnimId) { cancelAnimationFrame(orbAnimId); orbAnimId = null; }
+}
+
+// Chat
 function sendJarvisMessage() {
   var input = document.getElementById('jarvisInput');
   var text = input.value.trim();
   if (!text) return;
-
   var chat = document.getElementById('jarvisChat');
 
-  // Add user message
   var userMsg = document.createElement('div');
   userMsg.className = 'jarvis-message jarvis-sent';
   userMsg.innerHTML = '<div class="jarvis-bubble">' + escHtml(text) + '</div><div class="jarvis-time">Just now';
   chat.appendChild(userMsg);
-
   input.value = '';
   chat.scrollTop = chat.scrollHeight;
 
-  // Send to AI
   if (typeof socket !== 'undefined' && socket.connected) {
-    var sessionId = 'jarvis-' + Date.now();
-    socket.emit('chat', { text: text, session_id: sessionId });
+    var sid = 'jarvis-' + Date.now();
+    socket.emit('chat', { text: text, session_id: sid });
 
-    // Show thinking
-    var thinkMsg = document.createElement('div');
-    thinkMsg.className = 'jarvis-message jarvis-received';
-    thinkMsg.innerHTML = '<div class="jarvis-bubble" style="opacity:.6">Thinking...</div><div class="jarvis-time">Just now';
-    chat.appendChild(thinkMsg);
+    var think = document.createElement('div');
+    think.className = 'jarvis-message jarvis-received';
+    think.innerHTML = '<div class="jarvis-bubble" style="opacity:.5">Thinking...</div><div class="jarvis-time">Just now';
+    chat.appendChild(think);
     chat.scrollTop = chat.scrollHeight;
 
-    socket.once('chat:' + sessionId, function(data) {
-      thinkMsg.querySelector('.jarvis-bubble').textContent = data.response || data.error || 'No response.';
+    socket.once('chat:' + sid, function(data) {
+      think.querySelector('.jarvis-bubble').textContent = data.response || data.error || 'No response.';
       chat.scrollTop = chat.scrollHeight;
     });
-
     setTimeout(function() {
-      if (thinkMsg.parentNode) {
-        thinkMsg.querySelector('.jarvis-bubble').textContent = 'Response timed out.';
-      }
+      if (think.parentNode) think.querySelector('.jarvis-bubble').textContent = 'Timed out.';
     }, 15000);
   } else {
     var err = document.createElement('div');
     err.className = 'jarvis-message jarvis-received';
-    err.innerHTML = '<div class="jarvis-bubble" style="color:#f7768e">Not connected to AI server.</div><div class="jarvis-time">Just now';
+    err.innerHTML = '<div class="jarvis-bubble" style="color:var(--red)">Not connected.</div><div class="jarvis-time">Just now';
     chat.appendChild(err);
     chat.scrollTop = chat.scrollHeight;
   }
 }
 
-// ===== SCREEN SHARE =====
-var ssOpen = false;
-var ssStreamInterval = null;
-
-function toggleScreenShare(e) {
-  if (e) e.stopPropagation();
-  ssOpen = !ssOpen;
-  document.getElementById('screenSharePanel').classList.toggle('open', ssOpen);
-}
-
-function closeScreenShare() {
-  ssOpen = false;
-  document.getElementById('screenSharePanel').classList.remove('open');
-}
+// Screen Share (inside JARVIS)
+var ssInterval = null;
 
 function startScreenShare() {
   fetch('/api/stream/start', { method: 'POST' }).then(function(r) { return r.json(); }).then(function(d) {
@@ -1772,16 +1872,16 @@ function startScreenShare() {
       document.getElementById('ssStopBtn').disabled = false;
       document.getElementById('ssAnalyzeBtn').disabled = false;
       document.getElementById('ssStatus').textContent = 'Streaming...';
-      ssStreamInterval = setInterval(fetchSSFrame, 1000);
+      ssInterval = setInterval(fetchSSFrame, 1000);
     }
   }).catch(function() {
-    document.getElementById('ssStatus').textContent = 'Connection failed';
+    document.getElementById('ssStatus').textContent = 'Failed';
   });
 }
 
 function stopScreenShare() {
   fetch('/api/stream/stop', { method: 'POST' }).then(function(r) { return r.json(); }).then(function() {
-    if (ssStreamInterval) { clearInterval(ssStreamInterval); ssStreamInterval = null; }
+    if (ssInterval) { clearInterval(ssInterval); ssInterval = null; }
     document.getElementById('ssStartBtn').disabled = false;
     document.getElementById('ssStopBtn').disabled = true;
     document.getElementById('ssAnalyzeBtn').disabled = true;
@@ -1802,8 +1902,8 @@ function fetchSSFrame() {
 function analyzeScreen() {
   document.getElementById('ssStatus').textContent = 'Analyzing...';
   fetch('/api/stream/analyze', { method: 'POST' }).then(function(r) { return r.json(); }).then(function(d) {
-    document.getElementById('ssStatus').textContent = d.analysis ? 'Analysis complete' : 'No analysis';
+    document.getElementById('ssStatus').textContent = d.analysis ? 'Done' : 'No analysis';
   }).catch(function() {
-    document.getElementById('ssStatus').textContent = 'Analysis failed';
+    document.getElementById('ssStatus').textContent = 'Failed';
   });
 }
