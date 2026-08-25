@@ -77,6 +77,9 @@
         if (ready) {
           ready.style.animation = 'readyPulse 2s ease-in-out infinite, fadeUp 1s ease forwards';
         }
+        // Show topbar after boot
+        var topbar = document.getElementById('diTopbar');
+        if (topbar) { topbar.classList.add('show'); }
       }, 800);
     }
   }, 6500);

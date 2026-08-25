@@ -205,18 +205,25 @@ html, body {
 /* ===== TOP BAR ===== */
 /* ===== TOP BAR — Dynamic Island Style ===== */
 .di-topbar {
-  position: fixed; top: 10px; left: 0; right: 0;
+  position: fixed; top: 0; left: 0; right: 0;
   z-index: 9999;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px;
-  pointer-events: none;
-  animation: diAppear .5s var(--ease);
+  padding: 6px 16px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s var(--ease);
 }
+.di-topbar.show { opacity: 1; }
+.di-topbar.show .di-btn-pill { opacity: 1; transform: translateY(0); }
+/* Hover zone — invisible strip at top of screen */
+.di-hover-zone {
+  position: fixed; top: 0; left: 0; right: 0; height: 8px;
+  z-index: 9998; pointer-events: auto; cursor: default;
+}
+.di-hover-zone:hover ~ .di-topbar { opacity: 1; }
+.di-hover-zone:hover ~ .di-topbar .di-btn-pill { opacity: 1; transform: translateY(0); }
+.di-topbar:hover { opacity: 1; }
+.di-topbar:hover .di-btn-pill { opacity: 1; transform: translateY(0); }
 .di-topbar > div { pointer-events: auto; }
-@keyframes diAppear {
-  0% { opacity: 0; transform: translateY(-10px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
 .di-topbar-left, .di-topbar-right { display: flex; align-items: center; gap: 6px; }
 .di-topbar-center { display: flex; justify-content: center; }
 
@@ -225,27 +232,30 @@ html, body {
   display: flex; align-items: center; gap: 6px;
   background: rgba(20, 22, 35, 0.88); backdrop-filter: blur(30px) saturate(1.5);
   border: 1px solid rgba(255,255,255,.08);
-  border-radius: 22px; padding: 5px 12px;
+  border-radius: 22px; padding: 5px 14px;
   cursor: pointer; color: var(--text); font: inherit;
-  transition: all .35s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 2px 12px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,.03) inset;
   white-space: nowrap;
+  opacity: 0; transform: translateY(-8px);
+  transition: all .3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .di-btn-pill:hover {
   border-color: rgba(255,255,255,.15);
   box-shadow: 0 4px 24px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.06) inset;
-  transform: scale(1.04);
+  background: rgba(20, 22, 35, 0.95);
 }
-.di-btn-pill:active { transform: scale(0.96); }
+.di-btn-pill:active { transform: translateY(0) scale(0.96); }
 
 /* Activities */
 .di-activities {
   font-size: 12px; font-weight: 500; letter-spacing: 0.3px;
+  border-radius: 0 0 0 22px;
 }
 
 /* Workspace bar */
 .di-workspace-bar {
   padding: 5px 10px; gap: 4px;
+  border-radius: 0 0 12px 12px;
 }
 .di-ws-dot {
   width: 14px; height: 3px; border-radius: 2px;
@@ -260,9 +270,8 @@ html, body {
 
 /* Clock pill */
 .di-clock-pill {
-  font-size: 13px; gap: 8px; padding: 5px 16px;
+  font-size: 13px; gap: 8px; padding: 5px 18px;
 }
-.di-clock-pill:hover { background: rgba(255,255,255,.08); }
 #topClock {
   font-weight: 600; letter-spacing: 0.5px;
   font-variant-numeric: tabular-nums;
@@ -276,7 +285,8 @@ html, body {
 
 /* Tray pill */
 .di-tray-pill {
-  padding: 4px 8px; gap: 2px;
+  padding: 4px 10px; gap: 2px;
+  border-radius: 0 0 22px 0;
 }
 .di-tray-icon {
   padding: 4px 6px; border-radius: 10px; font-size: 13px;
@@ -289,7 +299,7 @@ html, body {
 
 /* Tray dropdown */
 .tray-dropdown {
-  position: fixed; top: 50px; right: 50%; transform: translateX(50%);
+  position: fixed; top: 44px; right: 50%; transform: translateX(50%);
   width: 280px; background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 8px;
   display: none; z-index: 10000;
@@ -299,6 +309,10 @@ html, body {
   display: block;
   animation: slideDown .25s var(--ease), fadeIn .2s ease;
 }
+
+/* Hide topbar during boot */
+#boot-container ~ .di-topbar { opacity: 0; pointer-events: none; }
+#boot-container.done ~ .di-topbar { opacity: 1; pointer-events: auto; }
 
 /* Window close animation — 0.9s */
 .window.closing {
