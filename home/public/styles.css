@@ -678,7 +678,7 @@ html, body {
 /* ===== JARVIS PANEL ===== */
 .jarvis {
   position: fixed;
-  left: 20px; bottom: 0;
+  right: 20px; bottom: 0;
   width: 820px; height: 520px;
   z-index: 1000;
   transform: translateY(100%);
@@ -825,7 +825,7 @@ html, body {
 
 /* Bottom bar */
 .jarvis-bar {
-  position: fixed; left: 20px; bottom: 0;
+  position: fixed; right: 20px; bottom: 0;
   width: 350px; height: 48px;
   z-index: 1100;
   display: flex; align-items: center; gap: 10px;
