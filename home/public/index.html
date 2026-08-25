@@ -42,9 +42,6 @@
 <div class="di-topbar" id="diTopbar">
   <div class="di-topbar-left">
     <button class="di-btn-pill di-activities" id="activitiesBtn">Activities</button>
-    <div class="di-btn-pill di-workspace-bar" id="workspaceIndicator">
-      <div class="di-ws-dot active" data-ws="0" onclick="switchWorkspace(0)"></div>
-    </div>
   </div>
   <div class="di-topbar-center">
     <button class="di-btn-pill di-clock-pill" id="clockBtn">
@@ -60,6 +57,38 @@
       <span class="di-tray-icon" id="trayBattery" title="Battery">&#128267;</span>
       <span class="di-tray-icon di-power" id="trayPower" title="Power">&#9211;</span>
     </div>
+  </div>
+</div>
+
+<!-- ===== BOTTOM TASKBAR — Windows Style ===== -->
+<div class="win-taskbar" id="winTaskbar">
+  <div class="wtb-left">
+    <div class="wtb-workspaces" id="wtbWorkspaces">
+      <div class="wtb-ws active" data-ws="0" onclick="switchWorkspace(0)"></div>
+    </div>
+  </div>
+  <div class="wtb-center">
+    <button class="wtb-app" onclick="openApp('win-files')" title="Files">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+    </button>
+    <button class="wtb-app" onclick="openApp('win-browser')" title="Browser">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>
+    </button>
+    <button class="wtb-app" onclick="openApp('win-terminal')" title="Terminal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 8l4 4-4 4"/><path d="M13 16h4"/></svg>
+    </button>
+    <button class="wtb-app" onclick="openApp('win-notes')" title="Notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>
+    </button>
+    <button class="wtb-app" onclick="openApp('win-settings')" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+  <div class="wtb-right">
+    <span class="wtb-tray-icon" title="Volume">&#128266;</span>
+    <span class="wtb-tray-icon" title="Network">&#128246;</span>
+    <span class="wtb-tray-icon" title="Battery">&#128267;</span>
+    <span class="wtb-clock" id="wtbClock">--:-- --</span>
   </div>
 </div>
 

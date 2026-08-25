@@ -208,7 +208,7 @@ html, body {
   position: fixed; top: 0; left: 0; right: 0;
   z-index: 9999;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 6px 16px;
+  padding: 8px 16px;
   opacity: 0; pointer-events: none;
   transition: opacity .3s var(--ease);
 }
@@ -224,8 +224,9 @@ html, body {
 .di-topbar:hover { opacity: 1; }
 .di-topbar:hover .di-btn-pill { opacity: 1; transform: translateY(0); }
 .di-topbar > div { pointer-events: auto; }
-.di-topbar-left, .di-topbar-right { display: flex; align-items: center; gap: 6px; }
-.di-topbar-center { display: flex; justify-content: center; }
+.di-topbar-left { display: flex; align-items: center; gap: 6px; }
+.di-topbar-center { position: absolute; left: 50%; transform: translateX(-50%); }
+.di-topbar-right { display: flex; align-items: center; gap: 6px; }
 
 /* Dynamic Island Pill */
 .di-btn-pill {
@@ -286,20 +287,20 @@ html, body {
 /* Tray pill */
 .di-tray-pill {
   padding: 4px 10px; gap: 2px;
-  border-radius: 0 0 22px 0;
+  overflow: hidden;
 }
 .di-tray-icon {
   padding: 4px 6px; border-radius: 10px; font-size: 13px;
   transition: all .2s var(--ease); color: var(--text-dim);
 }
-.di-tray-icon:hover { background: rgba(255,255,255,.1); color: var(--text); transform: scale(1.15); }
+.di-tray-icon:hover { background: rgba(255,255,255,.1); color: var(--text); }
 .di-tray-icon:active { transform: scale(0.9); }
 .di-power { color: var(--red); }
 .di-power:hover { background: rgba(247,118,142,.15); }
 
 /* Tray dropdown */
 .tray-dropdown {
-  position: fixed; top: 44px; right: 50%; transform: translateX(50%);
+  position: fixed; top: 52px; left: 50%; transform: translateX(-50%);
   width: 280px; background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 8px;
   display: none; z-index: 10000;
@@ -993,9 +994,9 @@ html, body {
 .term-scrollbar::-webkit-scrollbar-thumb:hover { background: #45475a; }
 
 /* ===== FILES — Windows 12 File Manager ===== */
-.files-window { display: flex; flex-direction: column; }
-.files-window .win-header { border-bottom: none; }
-.files-window .win-body { flex: 1; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+.window.files-window.open { display: flex; flex-direction: column; }
+.window.files-window .win-header { border-bottom: none; }
+.window.files-window .win-body { flex: 1; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 .files-toolbar {
   display: flex; align-items: center; gap: 6px; padding: 6px 12px;
   background: var(--surface2); border-bottom: 1px solid var(--border);
@@ -1339,3 +1340,54 @@ html, body {
   background: var(--green);
   animation: popIn .3s var(--ease-bounce);
 }
+
+/* ===== BOTTOM TASKBAR — Windows Style ===== */
+.win-taskbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: 48px; z-index: 9000;
+  background: rgba(20, 22, 35, 0.92); backdrop-filter: blur(30px) saturate(1.5);
+  border-top: 1px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 12px;
+  animation: slideUp .4s var(--ease);
+}
+@keyframes slideUp { from { transform: translateY(100%); } }
+.wtb-left, .wtb-right { display: flex; align-items: center; gap: 8px; }
+.wtb-center {
+  display: flex; align-items: center; gap: 2px;
+  background: rgba(255,255,255,.05); border-radius: 14px;
+  padding: 4px 8px; border: 1px solid rgba(255,255,255,.04);
+}
+.wtb-app {
+  width: 40px; height: 36px; border: none; background: transparent;
+  color: var(--text-dim); border-radius: 8px; cursor: pointer;
+  display: grid; place-items: center;
+  transition: all .2s var(--ease);
+}
+.wtb-app:hover { background: rgba(255,255,255,.1); color: var(--text); }
+.wtb-app:active { transform: scale(0.9); }
+.wtb-app.open { color: var(--accent); }
+.wtb-app.open::after {
+  content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+  width: 16px; height: 2px; background: var(--accent); border-radius: 1px;
+}
+.wtb-workspaces { display: flex; gap: 3px; padding: 0 4px; }
+.wtb-ws {
+  width: 14px; height: 3px; border-radius: 2px;
+  background: rgba(255,255,255,.2); cursor: pointer;
+  transition: all .3s var(--ease);
+}
+.wtb-ws:hover { background: rgba(255,255,255,.4); transform: scaleY(1.6); }
+.wtb-ws.active { width: 20px; background: var(--lav-cyan); box-shadow: 0 0 6px rgba(6,182,212,.5); }
+.wtb-tray-icon {
+  font-size: 13px; padding: 4px 5px; border-radius: 6px;
+  color: var(--text-dim); cursor: pointer; transition: all .2s var(--ease);
+}
+.wtb-tray-icon:hover { background: rgba(255,255,255,.1); color: var(--text); }
+.wtb-clock {
+  font-size: 12px; color: var(--text-dim); font-weight: 500;
+  padding: 4px 10px; border-radius: 8px; cursor: pointer;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  transition: all .2s var(--ease);
+}
+.wtb-clock:hover { background: rgba(255,255,255,.08); color: var(--text); }

@@ -243,11 +243,12 @@ function switchWorkspace(idx, direction) {
 }
 
 function updateWorkspaceIndicator() {
-  var container = document.getElementById('workspaceIndicator');
+  var container = document.getElementById('wtbWorkspaces');
+  if (!container) return;
   container.innerHTML = '';
   workspaces.forEach(function(ws, i) {
     var pill = document.createElement('div');
-    pill.className = 'workspace-pill' + (i === activeWorkspace ? ' active' : '');
+    pill.className = 'wtb-ws' + (i === activeWorkspace ? ' active' : '');
     pill.dataset.ws = i;
     pill.onclick = function() {
       var dir = i < activeWorkspace ? 'right' : 'left';
@@ -292,10 +293,13 @@ document.addEventListener('keydown', function(e) {
 function updateDockIndicator(id, open, minimized) {
   var app = id.replace('win-', '');
   var item = document.querySelector('.dock-item[data-app="' + app + '"]');
-  if (!item) return;
-  item.classList.remove('open', 'minimized');
-  if (open) item.classList.add('open');
-  else if (minimized) item.classList.add('minimized');
+  if (item) {
+    item.classList.remove('open', 'minimized');
+    if (open) item.classList.add('open');
+    else if (minimized) item.classList.add('minimized');
+  }
+  var wtbApp = document.querySelector('.wtb-app[title="' + app.charAt(0).toUpperCase() + app.slice(1) + '"]');
+  if (wtbApp) wtbApp.classList.toggle('open', open);
 }
 function updateAllDockIndicators() {
   document.querySelectorAll('.dock-item').forEach(function(item) {
@@ -932,6 +936,9 @@ function tick() {
   }
 
   document.getElementById('trayBatteryPct').textContent = '--';
+
+  var wtbClock = document.getElementById('wtbClock');
+  if (wtbClock) wtbClock.textContent = h12 + ':' + m + ' ' + ampm;
 }
 setInterval(tick, 1000); tick();
 
