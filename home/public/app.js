@@ -92,6 +92,8 @@ let recognition = null;
 let settings = {};
 let streamInterval = null;
 let dragState = null;
+var jarvisPending = false;
+var termAiPending = false;
 
 // ===== FOLDER ANIMATION =====
 function animateFolderOpen(el) {
@@ -1068,6 +1070,13 @@ socket.on('reply', function(data) {
     termAiPending = false;
     termPrint('AI: ' + (data.text || '...'), 'term-cyan');
   }
+  if (jarvisPending) {
+    jarvisPending = false;
+    var chat = document.getElementById('jarvisChat');
+    var last = chat.querySelector('.jarvis-message:last-child .jarvis-bubble');
+    if (last) last.textContent = data.text || data.error || 'No response.';
+    chat.scrollTop = chat.scrollHeight;
+  }
   if (data.text && settings.voice_output) speak(data.text);
 });
 socket.on('status', function(data) {
@@ -1405,7 +1414,6 @@ var termHistory = [];
 var termHistIdx = -1;
 var termDirs = [];
 var termBuf = '';
-var termAiPending = false;
 var termReady = true;
 
 function termFocus() {
@@ -2054,8 +2062,8 @@ function sendJarvisMessage() {
   chat.scrollTop = chat.scrollHeight;
 
   if (typeof socket !== 'undefined' && socket.connected) {
-    var sid = 'jarvis-' + Date.now();
-    socket.emit('chat', { text: text, session_id: sid });
+    jarvisPending = true;
+    socket.emit('chat', { text: text, session_id: 'jarvis-' + Date.now() });
 
     var think = document.createElement('div');
     think.className = 'jarvis-message jarvis-received';
@@ -2063,16 +2071,11 @@ function sendJarvisMessage() {
     chat.appendChild(think);
     chat.scrollTop = chat.scrollHeight;
 
-    function onReply(data) {
-      if (data.session_id !== sid) return;
-      socket.off('reply', onReply);
-      think.querySelector('.jarvis-bubble').textContent = data.text || data.error || 'No response.';
-      chat.scrollTop = chat.scrollHeight;
-    }
-    socket.on('reply', onReply);
     setTimeout(function() {
-      socket.off('reply', onReply);
-      if (think.parentNode) think.querySelector('.jarvis-bubble').textContent = 'Timed out.';
+      if (jarvisPending) {
+        jarvisPending = false;
+        if (think.parentNode) think.querySelector('.jarvis-bubble').textContent = 'Timed out.';
+      }
     }, 15000);
   } else {
     var err = document.createElement('div');
