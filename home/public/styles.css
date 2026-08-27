@@ -179,6 +179,7 @@ html, body {
 }
 @keyframes textReveal { to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+@keyframes readyPulse { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
 @keyframes progressFill {
   0% { width: 0%; } 30% { width: 35%; }
   60% { width: 70%; } 85% { width: 92%; } 100% { width: 100%; }
@@ -298,19 +299,6 @@ html, body {
 .di-power { color: var(--red); }
 .di-power:hover { background: rgba(247,118,142,.15); }
 
-/* Tray dropdown */
-.tray-dropdown {
-  position: fixed; top: 52px; left: 50%; transform: translateX(-50%);
-  width: 280px; background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 8px;
-  display: none; z-index: 10000;
-  box-shadow: 0 12px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(122,162,247,.08);
-}
-.tray-dropdown.open {
-  display: block;
-  animation: slideDown .25s var(--ease), fadeIn .2s ease;
-}
-
 /* Hide topbar during boot */
 #boot-container ~ .di-topbar { opacity: 0; pointer-events: none; }
 #boot-container.done ~ .di-topbar { opacity: 1; pointer-events: auto; }
@@ -347,18 +335,6 @@ html, body {
   100% { filter: brightness(1); }
 }
 
-/* Tray dropdown */
-.tray-dropdown {
-  position: fixed; top: 52px; right: 50%; transform: translateX(50%);
-  width: 280px; background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 8px;
-  display: none; z-index: 10000;
-  box-shadow: 0 12px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(122,162,247,.08);
-}
-.tray-dropdown.open {
-  display: block;
-  animation: slideDown .25s var(--ease), fadeIn .2s ease;
-}
 .cal-window { width: 780px; height: 500px; top: 60px; left: 160px; }
 .cal-body { flex: 1; display: flex; min-height: 0; }
 .cal-sidebar {
@@ -1036,10 +1012,6 @@ html, body {
 .window.open {
   display: flex;
   animation: scaleIn .3s var(--ease);
-}
-.window.closing {
-  animation: scaleOut .2s var(--ease) forwards;
-  pointer-events: none;
 }
 .window.focused {
   z-index: 30;

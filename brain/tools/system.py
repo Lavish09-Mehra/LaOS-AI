@@ -141,7 +141,9 @@ def get_system_info(query: str = "all", **_) -> dict:
 def capture_screen(query: str = "full", **_) -> dict:
     """Take a screenshot to a temp file. Auto-deleted after use for privacy."""
     try:
-        from PIL import ImageGrab
+        from PIL import ImageGrab, Image as PILImage
+
+
         import tempfile, time
         tmp_dir = tempfile.mkdtemp(prefix="lavos_ss_")
         ts = time.strftime("%Y%m%d_%H%M%S")
@@ -151,7 +153,7 @@ def capture_screen(query: str = "full", **_) -> dict:
         w, h = img.size
         if w > 512:
             ratio = 512 / w
-            img = img.resize((512, int(h * ratio)), ImageGrab.Image.LANCZOS)
+            img = img.resize((512, int(h * ratio)), PILImage.LANCZOS)
         img.save(path, optimize=True)
         return {"ok": True, "result": f"Screenshot captured", "data": {"path": path, "size": img.size}}
     except Exception as e:
@@ -227,7 +229,7 @@ def read_screen(query: str = "full", **_) -> dict:
         }
         data = json.dumps(payload).encode("utf-8")
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {NIM_API_KEY}"}
-        req = urllib.request.Request(f"{NIM_URL}/chat/completions", data=data, headers=headers, method="POST")
+        req = urllib.request.Request(NIM_URL, data=data, headers=headers, method="POST")
         resp = urllib.request.urlopen(req, timeout=30)
         body = json.loads(resp.read().decode("utf-8"))
         text = body["choices"][0]["message"]["content"]

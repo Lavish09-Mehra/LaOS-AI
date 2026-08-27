@@ -1375,7 +1375,25 @@ function saveSettings() {
   fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)})
   .then(function(){ settings=Object.assign(settings,s); if(s.ai_name) document.getElementById('aiPanelTitle').textContent=s.ai_name; });
 }
-function screenLock() {}
+function screenLock() {
+  var overlay = document.getElementById('lockScreen');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'lockScreen';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(10,10,20,.97);backdrop-filter:blur(30px);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;';
+    var now = new Date();
+    var time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    overlay.innerHTML = '<div style="font-size:64px;font-weight:200;color:#fff;font-family:Inter,sans-serif;">' + time + '</div>' +
+      '<div style="font-size:14px;color:#888;margin-top:8px;">Click anywhere to unlock</div>';
+    overlay.addEventListener('click', function() { overlay.remove(); });
+    document.body.appendChild(overlay);
+    setTimeout(function() {
+      var t = new Date();
+      overlay.querySelector('div').textContent = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
+    }, 1000);
+  }
+  closeTray();
+}
 
 // ===== UTILITIES =====
 function esc(str) { var d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
@@ -1871,7 +1889,7 @@ function sendJarvisMessage() {
 
   var userMsg = document.createElement('div');
   userMsg.className = 'jarvis-message jarvis-sent';
-  userMsg.innerHTML = '<div class="jarvis-bubble">' + escHtml(text) + '</div><div class="jarvis-time">Just now';
+  userMsg.innerHTML = '<div class="jarvis-bubble">' + esc(text) + '</div><div class="jarvis-time">Just now</div>';
   chat.appendChild(userMsg);
   input.value = '';
   chat.scrollTop = chat.scrollHeight;
@@ -1882,21 +1900,25 @@ function sendJarvisMessage() {
 
     var think = document.createElement('div');
     think.className = 'jarvis-message jarvis-received';
-    think.innerHTML = '<div class="jarvis-bubble" style="opacity:.5">Thinking...</div><div class="jarvis-time">Just now';
+    think.innerHTML = '<div class="jarvis-bubble" style="opacity:.5">Thinking...</div><div class="jarvis-time">Just now</div>';
     chat.appendChild(think);
     chat.scrollTop = chat.scrollHeight;
 
-    socket.once('chat:' + sid, function(data) {
-      think.querySelector('.jarvis-bubble').textContent = data.response || data.error || 'No response.';
+    function onReply(data) {
+      if (data.session_id !== sid) return;
+      socket.off('reply', onReply);
+      think.querySelector('.jarvis-bubble').textContent = data.text || data.error || 'No response.';
       chat.scrollTop = chat.scrollHeight;
-    });
+    }
+    socket.on('reply', onReply);
     setTimeout(function() {
+      socket.off('reply', onReply);
       if (think.parentNode) think.querySelector('.jarvis-bubble').textContent = 'Timed out.';
     }, 15000);
   } else {
     var err = document.createElement('div');
     err.className = 'jarvis-message jarvis-received';
-    err.innerHTML = '<div class="jarvis-bubble" style="color:var(--red)">Not connected.</div><div class="jarvis-time">Just now';
+    err.innerHTML = '<div class="jarvis-bubble" style="color:var(--red)">Not connected.</div><div class="jarvis-time">Just now</div>';
     chat.appendChild(err);
     chat.scrollTop = chat.scrollHeight;
   }

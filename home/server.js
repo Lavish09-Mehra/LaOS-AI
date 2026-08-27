@@ -90,6 +90,16 @@ app.get("/api/stream/frame", async (_, res) => {
   catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
+app.get("/api/status", async (_, res) => {
+  try { res.json(await brainFetch("/status", "GET")); }
+  catch (e) { res.json({ ok: false, error: e.message, cpu: 0, mem: 0, disk: 0, uptime: 0 }); }
+});
+
+app.post("/api/stream/analyze", async (_, res) => {
+  try { res.json(await brainFetch("/stream/analyze", "POST")); }
+  catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
 // --- Socket.io bridge -------------------------------------------------
 io.on("connection", (socket) => {
   console.log(`[home] client connected: ${socket.id}`);
