@@ -632,6 +632,53 @@
   </div>
 </div>
 
+<!-- System Monitor -->
+<div class="window" id="win-monitor" style="width:520px;height:420px;top:100px;left:300px;">
+  <div class="win-header">
+    <div class="win-title">&#128200; System Monitor</div>
+    <div class="win-controls">
+      <button class="win-btn win-close" onclick="closeApp('win-monitor')"></button>
+      <button class="win-btn win-min" onclick="minimizeApp('win-monitor')"></button>
+      <button class="win-btn win-max" onclick="toggleFullScreen('win-monitor')"></button>
+    </div>
+  </div>
+  <div class="win-body" style="padding:16px;display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;gap:12px;">
+      <div class="mon-card" style="flex:1;">
+        <div class="mon-label">CPU</div>
+        <div class="mon-bar-bg"><div class="mon-bar-fill cpu-bar" id="monCpu" style="width:0%"></div></div>
+        <div class="mon-val" id="monCpuVal">0%</div>
+      </div>
+      <div class="mon-card" style="flex:1;">
+        <div class="mon-label">Memory</div>
+        <div class="mon-bar-bg"><div class="mon-bar-fill mem-bar" id="monMem" style="width:0%"></div></div>
+        <div class="mon-val" id="monMemVal">0%</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <div class="mon-card" style="flex:1;">
+        <div class="mon-label">Disk</div>
+        <div class="mon-bar-bg"><div class="mon-bar-fill disk-bar" id="monDisk" style="width:0%"></div></div>
+        <div class="mon-val" id="monDiskVal">0%</div>
+      </div>
+      <div class="mon-card" style="flex:1;">
+        <div class="mon-label">Network</div>
+        <div class="mon-bar-bg"><div class="mon-bar-fill net-bar" id="monNet" style="width:0%"></div></div>
+        <div class="mon-val" id="monNetVal">0 KB/s</div>
+      </div>
+    </div>
+    <div class="mon-card" style="flex:1;display:flex;flex-direction:column;">
+      <div class="mon-label">Activity</div>
+      <canvas id="monCanvas" width="480" height="120" style="width:100%;height:120px;border-radius:6px;background:rgba(0,0,0,.3);"></canvas>
+    </div>
+    <div style="display:flex;gap:12px;font-size:11px;color:var(--text-dim);">
+      <span>Uptime: <b id="monUptime">0m</b></span>
+      <span>Processes: <b id="monProcs">0</b></span>
+      <span>AI Engine: <b id="monEngine">-</b></span>
+    </div>
+  </div>
+</div>
+
 <!-- AI Panel (slides from right) -->
 <div class="ai-panel" id="aiPanel">
   <div class="ai-panel-header">

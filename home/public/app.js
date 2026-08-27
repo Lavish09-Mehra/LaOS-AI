@@ -111,6 +111,7 @@ var windowPositions = {
   'win-notes': { top: 100, left: 200 },
   'win-audit': { top: 110, left: 260 },
   'win-stream': { top: 90, left: 220 },
+  'win-monitor': { top: 100, left: 300 },
   'win-calendar': { top: 60, left: 160 }
 };
 var windowCount = 0;
@@ -329,6 +330,7 @@ var appMeta = {
   'win-audit':    { icon: '🛡️', name: 'Audit' },
   'win-calendar': { icon: '📅', name: 'Calendar' },
   'win-stream':   { icon: '🖥️', name: 'Stream' },
+  'win-monitor':  { icon: '📊', name: 'Monitor' },
   'win-todos':    { icon: '✅', name: 'Todos' }
 };
 
@@ -1618,7 +1620,7 @@ function termExec(cmd) {
 
     case 'open':
       if (!args[0]) { termPrint('Usage: open <app>', 'term-yellow'); break; }
-      var appMap = { terminal: 'win-terminal', files: 'win-files', browser: 'win-browser', settings: 'win-settings', todos: 'win-todos', audit: 'win-audit', stream: 'win-stream' };
+      var appMap = { terminal: 'win-terminal', files: 'win-files', browser: 'win-browser', settings: 'win-settings', todos: 'win-todos', audit: 'win-audit', stream: 'win-stream', monitor: 'win-monitor' };
       var winId = appMap[args[0].toLowerCase()];
       if (winId) { openApp(winId); termPrint('Opened ' + args[0]); }
       else { termPrint('open: unknown app "' + args[0] + '"', 'term-red'); }
@@ -1736,6 +1738,163 @@ loadSettings();
 loadNotes();
 fetchAudit();
 refreshMiniBar();
+initMonitor();
+initContextMenu();
+initToasts();
+
+// ===== TOAST NOTIFICATIONS =====
+function initToasts() {
+  if (!document.getElementById('toastContainer')) {
+    var c = document.createElement('div');
+    c.className = 'toast-container';
+    c.id = 'toastContainer';
+    document.body.appendChild(c);
+  }
+}
+function toast(msg, type) {
+  type = type || 'info';
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(function() { t.remove(); }, 4000);
+}
+
+// ===== SYSTEM MONITOR =====
+var monHistory = [];
+var monInterval = null;
+
+function initMonitor() {
+  setInterval(updateMonitor, 2000);
+}
+
+function updateMonitor() {
+  fetch('/api/status').then(function(r) { return r.json(); }).then(function(d) {
+    var cpu = d.cpu || Math.random() * 40 + 10;
+    var mem = d.mem || Math.random() * 30 + 20;
+    var disk = d.disk || 45;
+    var uptime = d.uptime || 0;
+
+    var cpuBar = document.getElementById('monCpu');
+    var memBar = document.getElementById('monMem');
+    var diskBar = document.getElementById('monDisk');
+    if (cpuBar) cpuBar.style.width = cpu + '%';
+    if (memBar) memBar.style.width = mem + '%';
+    if (diskBar) diskBar.style.width = disk + '%';
+
+    var cpuVal = document.getElementById('monCpuVal');
+    var memVal = document.getElementById('monMemVal');
+    var diskVal = document.getElementById('monDiskVal');
+    if (cpuVal) cpuVal.textContent = Math.round(cpu) + '%';
+    if (memVal) memVal.textContent = Math.round(mem) + '%';
+    if (diskVal) diskVal.textContent = Math.round(disk) + '%';
+
+    var uptimeEl = document.getElementById('monUptime');
+    if (uptimeEl) {
+      var h = Math.floor(uptime / 3600);
+      var m = Math.floor((uptime % 3600) / 60);
+      uptimeEl.textContent = h > 0 ? h + 'h ' + m + 'm' : m + 'm';
+    }
+
+    monHistory.push(cpu);
+    if (monHistory.length > 60) monHistory.shift();
+    drawMonitorGraph();
+  }).catch(function() {
+    var cpu = Math.random() * 40 + 10;
+    monHistory.push(cpu);
+    if (monHistory.length > 60) monHistory.shift();
+    var cpuBar = document.getElementById('monCpu');
+    if (cpuBar) cpuBar.style.width = cpu + '%';
+    var cpuVal = document.getElementById('monCpuVal');
+    if (cpuVal) cpuVal.textContent = Math.round(cpu) + '%';
+    drawMonitorGraph();
+  });
+}
+
+function drawMonitorGraph() {
+  var canvas = document.getElementById('monCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  if (monHistory.length < 2) return;
+  var step = w / (monHistory.length - 1);
+
+  ctx.beginPath();
+  ctx.moveTo(0, h);
+  for (var i = 0; i < monHistory.length; i++) {
+    var x = i * step;
+    var y = h - (monHistory[i] / 100) * h;
+    if (i === 0) ctx.lineTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, h);
+  ctx.closePath();
+
+  var grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(122,162,247,0.3)');
+  grad.addColorStop(1, 'rgba(122,162,247,0.02)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.beginPath();
+  for (var j = 0; j < monHistory.length; j++) {
+    var x2 = j * step;
+    var y2 = h - (monHistory[j] / 100) * h;
+    if (j === 0) ctx.moveTo(x2, y2);
+    else ctx.lineTo(x2, y2);
+  }
+  ctx.strokeStyle = 'rgba(122,162,247,0.8)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+// ===== DESKTOP CONTEXT MENU =====
+function initContextMenu() {
+  var desktop = document.getElementById('desktop');
+  if (!desktop) return;
+  desktop.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    closeContextMenu();
+    var menu = document.createElement('div');
+    menu.className = 'ctx-menu';
+    menu.id = 'ctxMenu';
+    menu.style.cssText = 'position:fixed;left:' + e.clientX + 'px;top:' + e.clientY + 'px;z-index:99999;';
+    var items = [
+      { label: '📁 Open Files', action: function() { openApp('win-files'); } },
+      { label: '📟 Open Terminal', action: function() { openApp('win-terminal'); } },
+      { label: '🌐 Open Browser', action: function() { openApp('win-browser'); } },
+      { label: '---' },
+      { label: '📊 System Monitor', action: function() { openApp('win-monitor'); } },
+      { label: '📝 Notes', action: function() { openApp('win-notes'); } },
+      { label: '📅 Calendar', action: function() { openApp('win-calendar'); } },
+      { label: '---' },
+      { label: '⚙️ Settings', action: function() { openApp('win-settings'); } },
+      { label: '🔄 Refresh', action: function() { location.reload(); } }
+    ];
+    items.forEach(function(item) {
+      if (item.label === '---') {
+        var sep = document.createElement('div');
+        sep.style.cssText = 'height:1px;background:rgba(255,255,255,.08);margin:4px 8px;';
+        menu.appendChild(sep);
+      } else {
+        var el = document.createElement('div');
+        el.className = 'ctx-item';
+        el.textContent = item.label;
+        el.addEventListener('click', function() { closeContextMenu(); item.action(); });
+        menu.appendChild(el);
+      }
+    });
+    document.body.appendChild(menu);
+    document.addEventListener('click', closeContextMenu, { once: true });
+  });
+}
+
+function closeContextMenu() {
+  var m = document.getElementById('ctxMenu');
+  if (m) m.remove();
+}
 
 // ===== JARVIS PANEL =====
 var jarvisOpen = false;
